@@ -1,0 +1,145 @@
+                        Container(
+                          height: Get.height,
+                          width: Get.width,
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: SafeArea(
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 10,),
+                                Row(
+                                  children: [
+                                    InkWell(
+                                      onTap: () {
+                                        Get.back();
+                                      },
+                                      child: const Icon(
+                                        Iconsax.arrow_left,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10,),
+                                const CircleAvatar(
+                                  radius: 50,
+                                ),
+                                const SizedBox(height: 20,),
+                                Text(
+                                  user["name"],
+                                  style: const TextStyle(
+                                    color: Color(0xff0E0E0E),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700
+                                  ),
+                                ),
+                                const SizedBox(height: 5,),
+                                Text(
+                                  user["email"],
+                                  style: const TextStyle(
+                                    color: Color(0xff868686),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400
+                                  ),
+                                ),
+                                const SizedBox(height: 10,),
+                                Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          user["practiceArea"],
+                                          style: const TextStyle(
+                                            color: Color(0xff0E0E0E),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700
+                                          ),
+                                        ),
+                                        Text(
+                                          "Year Of Call - ${user["yearOfCall"]}",
+                                          style: const TextStyle(
+                                            color: Color(0xff868686),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24,),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text(
+                                      "About",
+                                      style: TextStyle(
+                                        color: Color(0xff0E0E0E),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700
+                                      ),
+                                    ),
+                                    Text(
+                                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi commodo, hendrerit sapien ut enim semper pellue. Pellentesque facilisi ligula mattis arcu. Dictumst adicing sit rhoncus quisque senectus ut mi, nulla purus. Arcu venenatis it proin sit tristique massa. Eu ut ornare adipng vulputate nec lorem arcu. Velit congue fermentumPellentesque facilisi ligula mattis arcu. Dictumst adicing sit rhoncus quisqu Eu ut ornare adipng vulputate nec lorem arcu. ",
+                                      textAlign: TextAlign.justify,
+                                      style: TextStyle(
+                                        color: Color(0xff5E5E5E),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      user["practiceArea"],
+                                      style: const TextStyle(
+                                        color: Color(0xff0E0E0E),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 41,
+                                      width: 84,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(25),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            blurRadius: 5,
+                                            offset: Offset(1, 1),
+                                            color: Color.fromARGB(1, 0, 0, 0)
+                                          ),
+                                        ]
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: const [
+                                          Icon(
+                                            Iconsax.messages5,
+                                            size: 20,
+                                            color: Color(0xffD3A518),
+                                          ),
+                                          SizedBox(width: 5,),
+                                          Text(
+                                            "Chat",
+                                            style: TextStyle(
+                                              color: Color(0xff0E0E0E),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 24,),
+                              ],
+                            )
+                          ),
+                        )

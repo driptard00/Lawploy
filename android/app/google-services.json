@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "812946540656",
+    "project_id": "lawploy-c677e",
+    "storage_bucket": "lawploy-c677e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812946540656:android:06e211d97026e5c22a8cb5",
+        "android_client_info": {
+          "package_name": "com.lawploy.lawploy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "812946540656-usrbun4uf4ei0fq3us17q9oaj8ofgd87.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwgfwDXhUoter6zIsgiPt-jnpsH0ulb8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "812946540656-usrbun4uf4ei0fq3us17q9oaj8ofgd87.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
