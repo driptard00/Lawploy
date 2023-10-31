@@ -1,15 +1,28 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:audioplayers/audioplayers.dart';
+import 'package:clipboard/clipboard.dart';
 import 'package:cloudinary/cloudinary.dart';
+import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
+import 'package:flutter_file_downloader/flutter_file_downloader.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:lawploy_app/controllers/appStateController.dart';
 import 'package:lawploy_app/controllers/chat_controller.dart';
+import 'package:lawploy_app/routes/app_route_names.dart';
 import 'package:lawploy_app/storage/secureStorage.dart';
 import 'package:record/record.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:thumbnailer/thumbnailer.dart';
 import '../../../Widget/BottomSheets/chatting_bottom_sheet_image.dart';
 import 'package:flutter/foundation.dart' as foundation;
 
@@ -25,12 +38,15 @@ class _ChatRoomState extends State<ChatRoom> {
 
   final chatID = Get.arguments["chatId"];
   final senderAuth = Get.arguments["senderAuth"];
-  final userFirstName = Get.arguments["userFirstName"];
-  final userLastName = Get.arguments["userLastName"];
+  final name = Get.arguments["name"];
   final userID = Get.arguments["userID"];
   final userProfileImage = Get.arguments["userProfileImage"];
+  // var read = Get.arguments["read"] ?? false;
 
-  final ChatController _chatController = Get.find<ChatController>();
+  // final ChatController _chatController = Get.find<ChatController>();
+  PdfViewerController? _pdfViewerController;
+  final ChatController _chatController = Get.put(ChatController());
+  final AppStateController _appStateController = Get.put(AppStateController());
   late IO.Socket _socket;
   late Record audioRecord;
   late AudioPlayer audioPlayer;
@@ -45,57 +61,51 @@ class _ChatRoomState extends State<ChatRoom> {
   );
   String audioLink = "";
   String? _userAuth;
+  bool isCheckingOnlineStatus = false;
+  Widget? thumbNail;
 
-  void _connectToSocket() async {
+  String formatTimestamp(String timestamp) {
+    final dateTime = DateTime.parse(timestamp).toLocal();
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays == 0) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else {
+      return DateFormat('d MMM, y').format(dateTime);
+    }
+  }
+
+  String formatTime(String inputTime) {
+    final timeParts = inputTime.split(':');
+    var hour = int.parse(timeParts[0]);
+    final minute = int.parse(timeParts[1]);
+    
+    String period = 'am';
+
+    // Determine the period (am/pm)
+    if (hour >= 12) {
+      period = 'pm';
+      if (hour > 12) {
+        hour -= 12;
+      }
+    }
+
+    // Format the time as "h:mm"
+    final formattedTime = '$hour:${minute.toString().padLeft(2, '0')}$period';
+
+    return formattedTime;
+  }
+
+  void getAuth() async {
     _userAuth = await LocalStorage().fetchUserAUTH();
-    print("AUTHHHHHH:::$_userAuth");
-    _socket = IO.io(
-        "https://lawploy.onrender.com?auth=$_userAuth",
-        IO.OptionBuilder().setTransports(['websocket'])
-        .enableReconnection()
-        .enableForceNewConnection()
-        .enableAutoConnect()
-        .build()
-    );
-
-    _socket.on('error', (data) {
-      print('Socket error: $data');
-    });
-
-    _socket.on('disconnect', (data) {
-      print('Socket disconnected: $data');
-    });
-
-    _socket.on('connect', (data) {
-      print('Socket Connected!!!!');
-    });
-
-    _socket.on('message', (data) {
-      // Handle the received event data
-      print('Received event: $data');
-      _chatController.addToMessages(data);
-    });
-
-    _socket.on('read', (data) {
-      // Handle the received event data
-      print('Received event: $data');
-      // _chatController.updateReadID(data["_chat"]);
-      _chatController.markMessageRead(data["_chat"], userID);
-
-    });
-
-    // _socket.on('chat', (data) {
-    //   // Handle the received event data
-    //   print('Received event: $data');
-    //   _chatController.updateLastMessageTime(data["chat"]);
-    // });
-
-    _socket.connect();
-
     setState(() {
       
     });
   }
+
 
   Future<void> startRecording() async {
     try{
@@ -172,6 +182,18 @@ class _ChatRoomState extends State<ChatRoom> {
       print(e);
     }
   }
+  Future<void> playPlayer(String url) async{
+    try{
+      Source urlSource = UrlSource(url);
+      await audioPlayer.play(urlSource);
+
+      setState((){
+        isPlaying = true;
+      });
+    }catch(e){
+      print(e);
+    }
+  }
   Future<void> pausePlayer() async{
     try{
       await audioPlayer.pause();
@@ -195,45 +217,62 @@ class _ChatRoomState extends State<ChatRoom> {
       print(e);
     }
   }
-  Future<void> getRecording(String url) async{
-    try {
-      final response = await Dio().get(
-        url,
-        options: Options(
-          responseType: ResponseType.bytes,
-          followRedirects: false,
-        )
-      );
-      print(response.data);
-      if(response.statusCode == 200) {
-        setState(() {
-          print(response.data);
-          audioPath = response.data;
-          playRecording();
-        });
-      } else {
-        print("Could not play audio!!");
+
+  void startOnlineStatusCheck() {
+    if (!isCheckingOnlineStatus) {
+      isCheckingOnlineStatus = true;
+
+      const duration = Duration(seconds: 10);
+
+      // Define an async function for periodic status checks
+      Future<void> checkOnlineStatusPeriodically() async {
+        while (isCheckingOnlineStatus) {
+          _chatController.checkOnlineStatus(userID);
+          await Future.delayed(duration);
+        }
       }
-    } catch (e) {
-      print(e);
+
+      // Start the periodic task
+      checkOnlineStatusPeriodically();
     }
   }
 
+  void stopOnlineStatusCheck() {
+    isCheckingOnlineStatus = false;
+  }
+
+  String extractFileNameFromUrl(String fileUrl) {
+    Uri uri = Uri.parse(fileUrl);
+
+    // Split the path into segments
+    List<String> pathSegments = uri.pathSegments;
+
+    // The last segment in the path is the file name
+    if (pathSegments.isNotEmpty) {
+      return pathSegments.last;
+    }
+
+    // If there are no segments, or the last segment is empty, return a default value or handle the case as needed.
+    return 'File';
+  }
+
   @override
-  void initState() {
+  void initState()  {
     super.initState(); 
+    getAuth();
+    _chatController.loadAllMessages(chatID);
+    _appStateController.markMessageRead(chatID, userID);
+    startOnlineStatusCheck();
     audioPlayer = AudioPlayer();
     audioRecord = Record();
-    _connectToSocket();
-    _chatController.loadAllMessages(chatID);
-    _chatController.markMessageRead(chatID, userID);
-    _chatController.checkOnlineStatus(userID);
+    print('OTHER USER ID;:::::$userID');
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-    _socket.disconnect();
+    // _socket.disconnect();
+    stopOnlineStatusCheck();
     audioPlayer.dispose();
     audioRecord.dispose();
     super.dispose();
@@ -261,7 +300,7 @@ class _ChatRoomState extends State<ChatRoom> {
                         child: Row(
                           children: [
                             Expanded(
-                              flex: 7,
+                              flex: 8,
                               child: Row(
                                 children: [
                                   InkWell(
@@ -291,7 +330,7 @@ class _ChatRoomState extends State<ChatRoom> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        "$userFirstName $userLastName",
+                                        name,
                                         style: const TextStyle(
                                           color: Color(0xff0E0E0E),
                                           fontSize: 16,
@@ -323,18 +362,13 @@ class _ChatRoomState extends State<ChatRoom> {
                                             ),
                                           )
                                           :
-                                          // (controller.lastSeen != "")?
-                                          // Text(
-                                          //   "Last seen ${controller.lastSeen}",
-                                          //   style: const TextStyle(
-                                          //     color: Color(0xff5E5E5E),
-                                          //     fontSize: 12,
-                                          //   ),
-                                          // )
-                                          // :
-                                          const Text(
-                                            "Offline",
-                                            style:  TextStyle(
+                                          Text(
+                                            (controller.lastSeen == "")?
+                                            ""
+                                            :
+                                            "Offline (Last seen ${formatTimestamp(controller.lastSeen)} at ${formatTime(controller.lastSeen.split("T").last)})",
+                                            maxLines: 1,
+                                            style: const TextStyle(
                                               color: Color(0xff5E5E5E),
                                               fontSize: 12,
                                             ),
@@ -346,37 +380,37 @@ class _ChatRoomState extends State<ChatRoom> {
                                 ],
                               ),
                             ),
-                            Expanded(
-                              flex: 3,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      // Get.back();
-                                    },
-                                    child: const Icon(
-                                      Iconsax.call,
-                                      color: Color(0xff041C40),
-                                      size: 25,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      // Get.back();
-                                    },
-                                    child: const Icon(
-                                      Icons.more_vert,
-                                      color: Color(0xff041C40),
-                                      size: 25,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            // Expanded(
+                            //   flex: 2,
+                            //   child: Row(
+                            //     mainAxisAlignment: MainAxisAlignment.end,
+                            //     children: [
+                            //       InkWell(
+                            //         onTap: () {
+                            //           // Get.back();
+                            //         },
+                            //         child: const Icon(
+                            //           Iconsax.call,
+                            //           color: Color(0xff041C40),
+                            //           size: 25,
+                            //         ),
+                            //       ),
+                            //       const SizedBox(
+                            //         width: 10,
+                            //       ),
+                            //       InkWell(
+                            //         onTap: () {
+                            //           // Get.back();
+                            //         },
+                            //         child: const Icon(
+                            //           Icons.more_vert,
+                            //           color: Color(0xff041C40),
+                            //           size: 25,
+                            //         ),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
@@ -387,7 +421,13 @@ class _ChatRoomState extends State<ChatRoom> {
                     child: Center(
                       child: Container(
                         padding: const EdgeInsets.only(top: 20, right: 20, left: 20),
-                        child: 
+                        child: (controller.isLoading)?
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xff041C40),
+                          ),
+                        )
+                        :
                         (controller.allMessagesList.isEmpty)?
                         const Center(
                           child: Text(
@@ -404,6 +444,8 @@ class _ChatRoomState extends State<ChatRoom> {
                             );
                           },
                           itemBuilder:(context, index) {
+ 
+                            null;
                             String timestamp = controller.allMessagesList[index]["sent"];
                             var dateTime = DateTime.parse(timestamp).toLocal();
                             var now = DateTime.now();
@@ -425,95 +467,170 @@ class _ChatRoomState extends State<ChatRoom> {
                               child: Column(
                                 crossAxisAlignment: controller.allMessagesList[index]["SentByMe"]? CrossAxisAlignment.end : CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                                    decoration: BoxDecoration(
-                                      borderRadius: controller.allMessagesList[index]["SentByMe"]?
-                                      const BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        bottomLeft: Radius.circular(20),
-                                        bottomRight: Radius.circular(2),
-                                        topRight: Radius.circular(20),
+                                  InkWell(
+                                    
+                                    onTap: () {
+                                      (controller.allMessagesList[index]["type"] == "text")?
+                                      FlutterClipboard.copy(controller.allMessagesList[index]["body"]).then(( value ) => Fluttertoast.showToast(
+                                        msg: "Copied to clipboard",
+                                        toastLength: Toast.LENGTH_LONG,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 1,
+                                        backgroundColor: Colors.green,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0
+                                      ))
+                                      :
+                                      null;
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        borderRadius: controller.allMessagesList[index]["SentByMe"]?
+                                        const BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          bottomLeft: Radius.circular(20),
+                                          bottomRight: Radius.circular(2),
+                                          topRight: Radius.circular(20),
+                                        )
+                                        :
+                                        const BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          bottomLeft: Radius.circular(2),
+                                          bottomRight: Radius.circular(20),
+                                          topRight: Radius.circular(20),
+                                        ),
+                                        color: controller.allMessagesList[index]["SentByMe"]?
+                                        const Color(0xffE3E9F1) 
+                                        :
+                                        const Color(0xffF2F2F2) 
+                                      ),
+                                      child: (controller.allMessagesList[index]["type"] == "text")?
+                                      Text(
+                                        controller.allMessagesList[index]["body"],
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xff0E0E0E),
+                                        ),
                                       )
                                       :
-                                      const BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        bottomLeft: Radius.circular(2),
-                                        bottomRight: Radius.circular(20),
-                                        topRight: Radius.circular(20),
-                                      ),
-                                      color: controller.allMessagesList[index]["SentByMe"]?
-                                      const Color(0xffE3E9F1) 
+                                      (controller.allMessagesList[index]["type"] == "image")?
+                                      InkWell(
+                                        onTap: () {
+                                          final imageProvider = Image.network(controller.allMessagesList[index]["body"]).image;
+                                          showImageViewer(context, imageProvider, onViewerDismissed: () {
+                                            print("dismissed");
+                                          });
+                                        },
+                                        child: Image.network(
+                                          controller.allMessagesList[index]["body"],
+                                          height: 150,
+                                          width: 200,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
                                       :
-                                      const Color(0xffF2F2F2) 
-                                    ),
-                                    child: (controller.allMessagesList[index]["type"] == "text")?
-                                    Text(
-                                      controller.allMessagesList[index]["body"],
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xff0E0E0E),
-                                      ),
-                                    )
-                                    :
-                                    (controller.allMessagesList[index]["type"] == "image")?
-                                    Image.network(
-                                      controller.allMessagesList[index]["body"],
-                                      height: 150,
-                                      width: 200
-                                    )
-                                    :
-                                    (controller.allMessagesList[index]["type"] == "video")?
-                                    Image.network(
-                                      controller.allMessagesList[index]["body"],
-                                    )
-                                    :
-                                    (controller.allMessagesList[index]["type"] == "audio")?
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        (!isPlaying)?
-                                        InkWell(
-                                          onTap: (){
-                                            getRecording(controller.allMessagesList[index]["body"]);
-                                          },
-                                          child: const Icon(
-                                            Icons.play_arrow,
-                                            color: Color(0xff0E0E0E),
-                                            size: 20,
-                                          ),
-                                        )
-                                            :
-                                        InkWell(
-                                          onTap: (){
-                                            pausePlayer();
-                                          },
-                                          child: const Icon(
-                                            Iconsax.pause5,
-                                            color: Color(0xff0E0E0E),
-                                            size: 20,
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
-                                        Text(
-                                          (isPlaying)?
-                                          "Playing"
+                                      (controller.allMessagesList[index]["type"] == "video")?
+                                      Image.network(
+                                        controller.allMessagesList[index]["body"],
+                                      )
+                                      :
+                                      (controller.allMessagesList[index]["type"] == "audio")?
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          (!isPlaying)?
+                                          InkWell(
+                                            onTap: (){
+                                              playPlayer(controller.allMessagesList[index]["body"]);
+                                            },
+                                            child: const Icon(
+                                              Icons.play_arrow,
+                                              color: Color(0xff0E0E0E),
+                                              size: 20,
+                                            ),
+                                          )
                                           :
-                                          "Play",
-                                          style: const TextStyle(
-                                            color: Color(0xff0E0E0E),
-                                            fontSize: 14
+                                          InkWell(
+                                            onTap: (){
+                                              pausePlayer();
+                                            },
+                                            child: const Icon(
+                                              Iconsax.pause5,
+                                              color: Color(0xff0E0E0E),
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 10,
+                                          ),
+                                          Text(
+                                            (isPlaying)?
+                                            "Playing"
+                                            :
+                                            "Play",
+                                            style: const TextStyle(
+                                              color: Color(0xff0E0E0E),
+                                              fontSize: 14
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                      :
+                                      (controller.allMessagesList[index]["type"] == "file")?
+                                      (
+                                        controller.getFileExtension(controller.allMessagesList[index]["body"]) == "pdf" ||
+                                        controller.getFileExtension(controller.allMessagesList[index]["body"]) == "docx"
+                                      )?
+                                      InkWell(
+                                        onTap: () {
+                                          Get.toNamed(
+                                            pdfviewer,
+                                            arguments: {
+                                              "file": controller.allMessagesList[index]["body"]
+                                            }
+                                          );
+                                        },
+                                        child: Container(
+                                          height: 50,
+                                          width: 100,
+                                          padding: EdgeInsets.symmetric(horizontal: 10),
+                                          decoration: BoxDecoration(
+                                            color: Color(0xffABB3BF),
+                                            borderRadius: BorderRadius.circular(10)
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Image.asset("images/file.png"),
+                                              const SizedBox(width: 10,),
+                                              const Text(
+                                                "File",
+                                                style: TextStyle(
+                                                  fontSize: 18
+                                                ),
+                                              )
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    )
-                                    :
-                                    (controller.allMessagesList[index]["type"] == "file")?
-                                    controller.thumbNail
-                                    :
-                                    controller.allMessagesList[index]["body"],
+                                      )
+                                      :
+                                      InkWell(
+                                        onTap: () {
+                                          final imageProvider = Image.network(controller.allMessagesList[index]["body"]).image;
+                                          showImageViewer(context, imageProvider, onViewerDismissed: () {
+                                            print("dismissed");
+                                          });
+                                        },
+                                        child: Image.network(
+                                          controller.allMessagesList[index]["body"],
+                                          height: 150,
+                                          width: 200,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                      :
+                                      controller.allMessagesList[index]["body"],
+                                    ),
                                   ),
                                   const SizedBox(
                                     height: 10,
@@ -532,7 +649,7 @@ class _ChatRoomState extends State<ChatRoom> {
                                             fontSize: 14
                                         ),
                                       ),
-                                      SizedBox(
+                                      const SizedBox(
                                         width: 5,
                                       ),
                                       Text(
@@ -704,6 +821,9 @@ class _ChatRoomState extends State<ChatRoom> {
                                       Expanded(
                                         flex: 6,
                                         child: TextFormField(
+                                          keyboardType: TextInputType.multiline,
+                                          minLines: 1,
+                                          maxLines: 5,
                                           controller: controller.msgController,
                                           focusNode: controller.focusNode,
                                           decoration: const InputDecoration(
@@ -736,7 +856,7 @@ class _ChatRoomState extends State<ChatRoom> {
                                           children: [
                                             InkWell(
                                               onTap: (){
-                                                controller.getFile();
+                                                controller.getFile(chatID);
                                               },
                                               child: const Icon(
                                                 Iconsax.link,
@@ -771,7 +891,6 @@ class _ChatRoomState extends State<ChatRoom> {
                                     onTap: () {
                                       controller.sendMessage("text", controller.msgController.text, chatID);
                                       controller.msgController.text = "";
-
                                     },
                                     child: Container(
                                       height: 43,

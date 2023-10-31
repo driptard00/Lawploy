@@ -33,7 +33,7 @@ class FeedBackScreen extends StatelessWidget {
       body: Container(
         height: Get.height,
         width: Get.width,
-        child: Column(
+        child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Column(

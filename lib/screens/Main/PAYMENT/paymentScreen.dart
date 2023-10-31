@@ -13,6 +13,10 @@ class PaymentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _paymentStateController.getAllPayments();
+    });
+    
     return GetBuilder<PaymentStateController>(
         builder: (controller) {
           return DefaultTabController(
@@ -73,7 +77,7 @@ class PaymentScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20,),
-                    const Expanded(
+                    Expanded(
                       child: TabBarView(
                         children: [
                           InflowView(),

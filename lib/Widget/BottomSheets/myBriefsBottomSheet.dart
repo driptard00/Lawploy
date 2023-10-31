@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_file_downloader/flutter_file_downloader.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../controllers/briefStateController.dart';
 
 class MyBriefsBottomSheet {
@@ -49,34 +50,32 @@ class MyBriefsBottomSheet {
                 ),
                 const SizedBox(height: 10,),
                 ListTile(
-                  onTap: () {
-                    FileDownloader.downloadFile(
-                      url: url,
-                      name: fileName,
-                      onProgress: (fileName, double progress) {
-                        print('FILE fileName HAS PROGRESS $progress');
-                        Fluttertoast.showToast(
-                            msg: "File Downloading...",
-                            toastLength: Toast.LENGTH_LONG,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.blue,
-                            textColor: Colors.white,
-                            fontSize: 16.0
-                        );
-                      },
-                      onDownloadCompleted: (String path) {
-                        Fluttertoast.showToast(
-                            msg: "File Downloaded Check Files",
-                            toastLength: Toast.LENGTH_LONG,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.green,
-                            textColor: Colors.white,
-                            fontSize: 16.0
-                        );
-                      },
+                  onTap: () async{
+                  final status = await Permission.storage.request();
+
+                  if (status.isGranted){
+                    final externalDir = await getExternalStorageDirectory();
+
+                    final taskID = await FlutterDownloader.enqueue(
+                      url: url, 
+                      savedDir: externalDir!.path,
+                      fileName: fileName,
+                      showNotification: true,
+                      openFileFromNotification: true,
+
                     );
+
+                  } else {
+                    Fluttertoast.showToast(
+                      msg: "Permission denied",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                    );
+                  }  
                     // controller.openBrief(fileUrl: url, fileName: fileName);
                   },
                   title: const Text(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:lawploy_app/controllers/appStateController.dart';
 import 'package:lawploy_app/controllers/chat_controller.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 import 'package:lawploy_app/storage/secureStorage.dart';
@@ -16,65 +17,38 @@ class ChatScreenView extends StatefulWidget {
 class _ChatScreenViewState extends State<ChatScreenView> {
 
   final ChatController _chatController = Get.put(ChatController());
+  final AppStateController _appStateController = Get.put(AppStateController());
 
   late IO.Socket _socket;
   String? _userAuth;
 
-  void _connectToSocket() async {
+  void getAuth() async {
     _userAuth = await LocalStorage().fetchUserAUTH();
-    print("AUTHHHHHH:::$_userAuth");
-    _socket = IO.io(
-        "https://lawploy.onrender.com?auth=$_userAuth",
-        IO.OptionBuilder().setTransports(['websocket'])
-        .enableReconnection()
-        .enableForceNewConnection()
-        .enableAutoConnect()
-        .build()
-    );
-
-    // _socket.on('chat', (data) {
-    //   // Handle the received event data
-    //   print('Received event: $data');
-    //   _chatController.updateLastMessageTime(data["chat"]);
-    // });
-
-    _socket.on('error', (data) {
-      print('Socket error: $data');
+    setState(() {
+      
     });
-
-    _socket.on('disconnect', (data) {
-      print('Socket disconnected: $data');
-    });
-
-    _socket.on('connect', (data) {
-      print('Socket Connected!!!!: $data');
-    });
-
-    _socket.connect();
-
-    setState(() {});
   }
 
   @override
   void initState() {
     // TODO: implement initState
     _chatController.updateUserAuth();
-    _connectToSocket();
-    _chatController.getConversations();
+    getAuth();
+    _appStateController.getConversations();
     super.initState();
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-    _socket.dispose();
+    // _socket.disconnect();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
-    return GetBuilder<ChatController>(
+    print('USSEEEEEEERRRRRRRAURHTTHTHTH:$_userAuth');
+    return GetBuilder<AppStateController>(
       builder: (controller) {
         return Scaffold(
           body: Container(
@@ -83,13 +57,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
             child: Column(
               children: [
                 Expanded(
-                  child: (controller.isLoading)?
-                  const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xff03132B),
-                    )
-                  )
-                  :
+                  child: 
                   (controller.conversationList.isEmpty)?
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -115,16 +83,20 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                       null
                       :
                       InkWell(
-                        onTap: () {
+                        onTap: () async {
+                          String auth = await LocalStorage().fetchUserAUTH();
+
                           Get.toNamed(
                             chatRoom,
                             arguments: {
                               "chatId": controller.conversationList[index]["_id"],
-                              "userFirstName": controller.conversationList[index]["user"]["first_name"],
-                              "userLastName": controller.conversationList[index]["user"]["last_name"],
-                              "userID": controller.conversationList[index]["user"]["_id"],
+                              "name": (controller.conversationList[index]["type"] == "lawyer" || controller.conversationList[index]["type"] == "private")?
+                              "${controller.conversationList[index]["user"]["first_name"]} ${controller.conversationList[index]["user"]["last_name"]}"
+                              :
+                              controller.conversationList[index]["user"]["name"],
+                              "userID": controller.conversationList[index]["user"]["_auth"],
                               "userProfileImage": controller.conversationList[index]["user"]["profile_image"],
-                              "senderAuth": controller.usersAuth,
+                              // "senderAuth": controller.usersAuth,
                             }
                           );
                         },
@@ -161,6 +133,9 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                                         )
                                         :
                                         Text(
+                                          (controller.conversationList[index]["type"] == "lawyer" || controller.conversationList[index]["type"] == "private")?
+                                          "${controller.conversationList[index]["user"]["first_name"]} ${controller.conversationList[index]["user"]["last_name"]}"
+                                          :
                                           controller.conversationList[index]["user"]["name"],
                                           style: const TextStyle(
                                             color:Color(0xff0E0E0E),
@@ -182,7 +157,18 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                                       children: [
                                         Expanded(
                                           flex: 7,
-                                          child: (controller.conversationList[index]["lastMessage"]["_type"] == "text")?
+                                          child: (controller.conversationList[index]["lastMessage"] == null)?
+                                          const Text(
+                                            "No messages, click to chat",
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color:Color(0xff5E5E5E),
+                                              fontSize: 12,
+                                            ),
+                                          )
+                                          :
+                                          (controller.conversationList[index]["lastMessage"]["_type"] == "text")?
                                           Text(
                                             controller.conversationList[index]["lastMessage"]["body"],
                                             maxLines: 1,
@@ -194,8 +180,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                                           )
                                           :
                                           (controller.conversationList[index]["lastMessage"]["_type"] == "image")?
-                                          Row(
-                                            children: const[
+                                          const Row(
+                                            children: [
                                               Icon(
                                                 Iconsax.gallery,
                                                 color:Color(0xff5E5E5E),
@@ -217,8 +203,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                                           )
                                           :
                                           (controller.conversationList[index]["lastMessage"]["_type"] == "video")?
-                                          Row(
-                                            children: const[
+                                          const Row(
+                                            children: [
                                               Icon(
                                                 Iconsax.video,
                                                 color:Color(0xff5E5E5E),
@@ -240,8 +226,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                                           )
                                           :
                                           (controller.conversationList[index]["lastMessage"]["_type"] == "file")?
-                                          Row(
-                                            children: const[
+                                          const Row(
+                                            children: [
                                               Icon(
                                                 Iconsax.document,
                                                 color:Color(0xff5E5E5E),
@@ -264,7 +250,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                                           :
                                           (controller.conversationList[index]["lastMessage"]["_type"] == "audio")?
                                           const Row(
-                                            children: const[
+                                            children: [
                                               Icon(
                                                 Iconsax.music,
                                                 color:Color(0xff5E5E5E),
@@ -293,26 +279,21 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                                           flex: 3,
                                           child: Align(
                                             alignment: Alignment.centerRight,
-                                            child: (controller.conversationList[index]["unread"] == 0)?
-                                              null
-                                              :
+                                            child: (controller.conversationList[index]["lastMessage"] != null)?
+                                            (controller.conversationList[index]["lastMessage"]["_sender"] != _userAuth && !controller.conversationList[index]["lastMessage"]["read"])?
                                             Container(
-                                              height: 18,
-                                              width: 18,
+                                              height: 10,
+                                              width: 10,
                                               decoration: BoxDecoration(
                                                 color: const Color(0xffD3A518),
                                                 borderRadius: BorderRadius.circular(20)
                                               ),
                                               alignment: Alignment.center,
-                                              child: 
-                                              Text(
-                                                controller.conversationList[index]["unread"].toString(),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12
-                                                ),
-                                              ),
-                                            ),
+                                            )
+                                            :
+                                              null
+                                            :
+                                            null
                                           ),
                                         ),
                                       ],

@@ -224,9 +224,9 @@ class LFSettingScreen extends StatelessWidget {
                     const SizedBox(
                       height: 10,
                     ),
-                    Row(
+                    const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children:  [
                         Expanded(
                           flex: 1,
                           child: Icon(

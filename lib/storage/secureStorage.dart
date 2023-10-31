@@ -27,6 +27,7 @@ class LocalStorage{
   storeUserToken(String token) async{
     try {
       await _flutterSecureStorage.write(key: "Token", value: token);
+      await _flutterSecureStorage.write(key: "TOKEN", value: token);
       print("Saved Token");
     } catch (e) {
       print(e);
@@ -34,10 +35,29 @@ class LocalStorage{
     }
   }
 
+  // STORE TOKEN
+  storeUserToken2(String token) async{
+    try {
+      await _flutterSecureStorage.write(key: "TOKEN", value: token);
+      print("Saved Token2");
+    } catch (e) {
+      print(e);
+      print("Could not save token2");
+    }
+  }
+
   // FETCH TOKEN
   Future<String> fetchUserToken() async{
     String token = await _flutterSecureStorage.read(key: "Token") ?? "";
     print("Fetched token successful");
+
+    return token;
+  }
+
+  // FETCH TOKEN2
+  Future<String> fetchUserToken2() async{
+    String token = await _flutterSecureStorage.read(key: "TOKEN") ?? "";
+    print("Fetched token2 successful");
 
     return token;
   }
@@ -97,6 +117,25 @@ class LocalStorage{
     print("Fetched email successful");
 
     return email;
+  }
+
+  // STORE TYPE
+  storeType(String type) async{
+    try {
+      await _flutterSecureStorage.write(key: "Type", value: type);
+      print("Saved TYPE");
+    } catch (e) {
+      print(e);
+      print("Could not save TYPE");
+    }
+  }
+
+  // FETCH TYPE
+  Future<String> fetchType() async{
+    String type = await _flutterSecureStorage.read(key: "Type") ?? "";
+    print("Fetched type successful");
+
+    return type;
   }
 
   // DELETE USER FROM STORAGE

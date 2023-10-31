@@ -9,6 +9,8 @@ LawFirm lawFirmFromMap(String str) => LawFirm.fromMap(json.decode(str));
 String lawFirmToMap(LawFirm data) => json.encode(data.toMap());
 
 class LawFirm {
+      String? id;
+    String? auth;
     String? type;
     bool? accountVerify;
     bool? accountSetupCompleted;
@@ -34,6 +36,8 @@ class LawFirm {
     int? v;
 
     LawFirm({
+      this.id,
+      this.auth,
        this.type,
        this.accountVerify,
        this.accountSetupCompleted,
@@ -60,6 +64,8 @@ class LawFirm {
     });
 
     factory LawFirm.fromMap(Map<String, dynamic> json) => LawFirm(
+        id: json["_id"],
+        auth: json["_auth"],
         type: json["_type"],
         accountVerify: json["account_verify"],
         accountSetupCompleted: json["account_setup_completed"],
@@ -86,6 +92,8 @@ class LawFirm {
     );
 
     Map<String, dynamic> toMap() => {
+      "_id": id,
+      "_auth": auth,
         "_type": type,
         "account_verify": accountVerify,
         "account_setup_completed": accountSetupCompleted,

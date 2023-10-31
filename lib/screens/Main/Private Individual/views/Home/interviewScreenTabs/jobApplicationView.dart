@@ -67,7 +67,14 @@ class JobApplicationView extends StatelessWidget {
                   itemBuilder: (context, index) {
                     return ListTile(
                       onTap: (){
-                        JobApplicationBottomSheet.showJobApplicationBottomSheet(controller.applicants[index]["file"], controller.applicants[index]["_user"]["file"].toString().split("/").last, controller.applicants[index]["_job"], controller.applicants[index]["_user"]["_auth"]);
+                        JobApplicationBottomSheet.showJobApplicationBottomSheet(
+                          controller.applicants[index]["file"], 
+                          controller.applicants[index]["_user"]["file"].toString().split("/").last,
+                          controller.applicants[index]["_job"], 
+                          controller.applicants[index]["_user"]["_auth"], 
+                          controller.applicants[index]["_user"]["first_name"],
+                          controller.applicants[index]["_user"]["cover_letter"],
+                        );
                       },
                       leading: CircleAvatar(
                         radius: 20,

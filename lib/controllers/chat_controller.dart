@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:cloudinary/cloudinary.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_previewer/file_previewer.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,15 +15,20 @@ import 'package:intl/intl.dart';
 import 'package:lawploy_app/routes/api_routes.dart';
 import 'package:lawploy_app/services/CHAT/chat_api_service.dart';
 import 'package:lawploy_app/storage/secureStorage.dart';
+import 'package:path/path.dart';
 import '../models/chat_model.dart';
 import '../routes/app_route_names.dart';
+import 'package:image/image.dart' as img;
 
 class ChatController extends GetxController {
   bool _isLoading = false;
+  bool _isChatLoading = false;
   String _chatId = "";
   String _messageText = "";
   TextEditingController _msgController = TextEditingController();
   List<dynamic> _conversationList = [];
+  List<dynamic> _unreadList = [];
+  List<dynamic> _readList = [];
   List<dynamic> _allMessagesList = [];
   String _userId = "";
   String _usersAuth = "";
@@ -39,7 +47,7 @@ class ChatController extends GetxController {
   String _lastSeen = "";
   bool _isEmojiVisisble = false;
   FocusNode _focusNode = FocusNode();
-  Widget _thumbNail = Image.asset("");
+  Widget? _thumbNail;
 
   @override
   void onInit() {
@@ -66,9 +74,12 @@ class ChatController extends GetxController {
 
   // GETTERS
   bool get isLoading => _isLoading;
+  bool get isChatLoading => _isChatLoading;
   String get chatId => _chatId;
   TextEditingController get msgController => _msgController;
   List<dynamic> get allMessagesList => _allMessagesList;
+  List<dynamic> get unreadList => _unreadList;
+  List<dynamic> get readList => _readList;
   List<dynamic> get conversationList => _conversationList;
   String get userId => _userId;
   String get usersAuth => _usersAuth;
@@ -81,11 +92,15 @@ class ChatController extends GetxController {
   String get lastSeen => _lastSeen;
   bool get isEmojiVisible => _isEmojiVisisble;
   FocusNode get focusNode => _focusNode;
-  Widget get thumbNail => _thumbNail;
+  Widget? get thumbNail => _thumbNail;
 
   // SETTERS
   updateIsLoading(value) {
     _isLoading = value;
+    update();
+  }
+  updateIsChatLoading(value) {
+    _isChatLoading = value;
     update();
   }
   updateChatId(value) {
@@ -154,7 +169,6 @@ class ChatController extends GetxController {
   }
   updateReadID(value) {
     _readID = value;
-    null;
     update();
   }  
   updateOnlineStatus(value) {
@@ -173,9 +187,78 @@ class ChatController extends GetxController {
     _thumbNail = value;
     update();
   }
+  updateUnreadList(value) {
+    _unreadList = value;
+    update();
+  }
+  updateReadList(value) {
+    _readList = value;
+    update();
+  }
+
+  String getFileExtension(String url) {
+    String fileExtension = extension(url);
+    if (fileExtension.isNotEmpty) {
+      // Remove the leading dot (e.g., ".pdf" becomes "pdf")
+      fileExtension = fileExtension.substring(1);
+    }
+    print("File Extension: $fileExtension");
+    return fileExtension.toString().split("?").first;
+  }
+
+  // FIREBASE STORAGE
+  Future<void> uploadFile(File file, String fileName, chatID) async {
+    try {
+      final FirebaseStorage storage = FirebaseStorage.instance;
+      final Reference storageRef = storage.ref().child('lawploy/$fileName');
+      final UploadTask uploadTask = storageRef.putFile(file);
+
+      // Wait for the upload task to complete
+      await uploadTask.whenComplete(() {
+        print('File uploaded successfully');
+      });
+
+      // Get the download URL of the uploaded file
+      String downloadURL = await storageRef.getDownloadURL();
+
+      updateFileUrl(downloadURL);
+
+      sendMessage("file", _fileUrl, chatID);
+
+      
+      print('Download URL: $downloadURL');
+    } catch (e) {
+      print('Error uploading file: $e');
+    }
+  }
+
+  // FIREBASE STORAGE
+  Future<void> uploadImage(File file, String fileName, chatID) async {
+    try {
+      final FirebaseStorage storage = FirebaseStorage.instance;
+      final Reference storageRef = storage.ref().child('lawploy/$fileName');
+      final UploadTask uploadTask = storageRef.putFile(file);
+
+      // Wait for the upload task to complete
+      await uploadTask.whenComplete(() {
+        print('File uploaded successfully');
+      });
+
+      // Get the download URL of the uploaded file
+      String downloadURL = await storageRef.getDownloadURL();
+
+      updateImageUrl(downloadURL);
+
+      sendMessage("image", _imageUrl, chatID);
+      
+      print('Download URL: $downloadURL');
+    } catch (e) {
+      print('Error uploading file: $e');
+    }
+  }
 
   // GET FILE
-  Future<void> getFile() async {
+  Future<void> getFile(String chatID) async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles();
 
@@ -186,18 +269,7 @@ class ChatController extends GetxController {
         updateFileName(file.path.split("/").last);
         updateThumbNail(thumbnail);
 
-        final response = await cloudinary.upload(
-          file: file.path,
-          fileBytes: file.readAsBytesSync(),
-          resourceType: CloudinaryResourceType.image,
-          progressCallback: (count, total) {
-          print(
-          'Uploading image from file with progress: $count/$total');
-          });
-          if(response.isSuccessful) {
-            print('Get your image from with ${response.secureUrl}');  
-            updateFileUrl(response.secureUrl);
-          }  
+        uploadFile(file, _fileName, chatID);
 
       } else {
         // User canceled the picker
@@ -227,27 +299,7 @@ class ChatController extends GetxController {
       if (_pickedImage != null) {
         updateSelectedImage(File(_pickedImage.path));
 
-        final response = await cloudinary.upload(
-          file: _selectedImage!.path,
-          fileBytes: _selectedImage!.readAsBytesSync(),
-          resourceType: CloudinaryResourceType.image,
-          progressCallback: (count, total) {
-          print(
-          'Uploading image from file with progress: $count/$total');
-          });
-          if(response.isSuccessful) {
-            print('Get your image from with ${response.secureUrl}');  
-          }  
-        
-        updateImageUrl(response.secureUrl);
-
-        if(_imageUrl != ""){
-          print("IMAGE URL::::::$_imageUrl");
-          sendMessage("image", _imageUrl, chatID);
-        }else{
-          null;
-        }
-        
+        uploadImage(_selectedImage!, _fileName, chatID);
 
       } else {
         Fluttertoast.showToast(
@@ -299,7 +351,7 @@ class ChatController extends GetxController {
   }
 
   // CREATE CONVERSATION
-  Future<void> createConversation(String recevierId, firstname, lastname, profileImage) async{
+  Future<void> createConversation(String recevierId, firstname, lastname, profileImage, userID,) async{
     updateIsLoading(true);
 
     Map<String, dynamic> details = {
@@ -322,9 +374,9 @@ class ChatController extends GetxController {
         arguments: {
           "chatId": _chatId,
           "senderAuth": await LocalStorage().fetchUserAUTH(),
-          "userFirstName": firstname,
-          "userLastName": lastname,
+          "name": "$firstname $lastname",
           "userProfileImage": profileImage,
+          "userID": userID,
         }
       );
 
@@ -348,7 +400,7 @@ class ChatController extends GetxController {
 
   // GET CONVERSATIONS
   Future<void> getConversations() async{
-    updateIsLoading(true);
+    // updateIsLoading(true);
 
     var response = await ChatApiServices.getConversationService();
     var responseData = await response!.data;
@@ -356,11 +408,14 @@ class ChatController extends GetxController {
 
     bool isSuccess = responseData["success"];
     if(isSuccess) {
-      updateIsLoading(false);
+      // updateIsLoading(false);
 
       // updateChatId(responseData["data"]);
 
       updateConversationList(responseData["data"]);
+      updateUnreadList(
+        _conversationList.where((list) => list["lastMessage"] != null).toList()
+      );
       
     } else {
       Fluttertoast.showToast(
@@ -379,7 +434,7 @@ class ChatController extends GetxController {
 
   // LOAD ALL MESSAGES IN CHAT ROOM
   Future<void> loadAllMessages(String chatID) async{
-    // updateIsLoading(true);
+    updateIsLoading(true);
 
     var response = await ChatApiServices.loadAllMessageService(chatID);
     var responseData = await response!.data;
@@ -392,6 +447,8 @@ class ChatController extends GetxController {
       updateAllMessagesList(responseData["data"]);
 
     } else {
+      updateIsLoading(false);
+
       Fluttertoast.showToast(
         msg: responseData["error"],
         toastLength: Toast.LENGTH_LONG,
@@ -408,7 +465,7 @@ class ChatController extends GetxController {
 
   // SEND MESSAGE
   Future<void> sendMessage(String type, String message, String chatID) async{
-    updateIsLoading(true);
+    // updateIsLoading(true);
 
     Map<String, dynamic> details = {
       "type": type,
@@ -423,12 +480,13 @@ class ChatController extends GetxController {
 
     bool isSuccess = responseData["success"];
     if(isSuccess) {
-      updateIsLoading(false);
+      // updateIsLoading(false);
 
       // addToMessages(responseData["newMessage"]);
+      // getConversations();
 
     } else {
-      updateIsLoading(false);
+      // updateIsLoading(false);
 
       Fluttertoast.showToast(
         msg: responseData["error"],
@@ -453,18 +511,18 @@ class ChatController extends GetxController {
 
     bool isSuccess = responseData["success"];
     if(isSuccess) {
-
+      getConversations();
     } else {
 
-      Fluttertoast.showToast(
-        msg: responseData["error"],
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0
-      );
+      // Fluttertoast.showToast(
+      //   msg: responseData["error"],
+      //   toastLength: Toast.LENGTH_LONG,
+      //   gravity: ToastGravity.BOTTOM,
+      //   timeInSecForIosWeb: 1,
+      //   backgroundColor: Colors.red,
+      //   textColor: Colors.white,
+      //   fontSize: 16.0
+      // );
     }
 
     update();
@@ -475,7 +533,7 @@ class ChatController extends GetxController {
 
     var response = await ChatApiServices.onlineStatusService(id);
     var responseData = await response!.data;
-    print(responseData);
+    print("ONLINE STATUS:$responseData");
 
     bool isSuccess = responseData["success"];
     if(isSuccess) {

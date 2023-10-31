@@ -148,11 +148,11 @@ class JobFeedProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 20,),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                        const Padding(
+                          padding:  EdgeInsets.symmetric(horizontal: 15),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children:  [
                                Text(
                                 "Company’s website",
                                 style: TextStyle(
@@ -162,7 +162,7 @@ class JobFeedProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                "www.quantuminc.com",
+                                "",
                                 style: TextStyle(
                                   color: Color(0xff4E8BD2),
                                   fontSize: 14,

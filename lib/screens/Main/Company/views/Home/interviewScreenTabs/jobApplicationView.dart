@@ -23,7 +23,7 @@ class JobApplicationView extends StatelessWidget {
       builder: (controller) {
         return Scaffold(
           body: (controller.isLoading)?
-          Center(
+          const Center(
             child: SpinKitThreeBounce(
               color: Color(0xff041C40),
             ),
@@ -36,7 +36,7 @@ class JobApplicationView extends StatelessWidget {
                 Image.asset(
                     "images/noInterview.png"
                 ),
-                Text(
+                const Text(
                     "You've not sent any interviews"
                 )
               ],
@@ -83,17 +83,23 @@ class JobApplicationView extends StatelessWidget {
 
                     return ListTile(
                       onTap: (){
-                        JobApplicationBottomSheet.showJobApplicationBottomSheet(controller.applicants[index]["file"], controller.applicants[index]["_user"]["file"].toString().split("/").last, controller.applicants[index]["_job"], controller.applicants[index]["_user"]["_auth"]);
+                        JobApplicationBottomSheet.showJobApplicationBottomSheet(controller.applicants[index]["file"], 
+                        controller.applicants[index]["file"].toString().split("/").last, 
+                        controller.applicants[index]["_job"], 
+                        controller.applicants[index]["_user"]["lawyerID"]["_auth"], 
+                        controller.applicants[index]["_user"]["lawyerID"]["first_name"],
+                        controller.applicants[index]["cover_letter"],
+                      );
                       },
                       leading: CircleAvatar(
                         radius: 20,
-                        backgroundImage: (controller.applicants[index]["_user"]["profile_image"] == null)?
+                        backgroundImage: (controller.applicants[index]["_user"]["lawyerID"]["profile_image"] == null)?
                         const AssetImage("images/profileAvatar.png") as ImageProvider
                             :
-                        NetworkImage(controller.applicants[index]["_user"]["profile_image"]),
+                        NetworkImage(controller.applicants[index]["_user"]["lawyerID"]["profile_image"]),
                       ),
                       title: Text(
-                        "${controller.applicants[index]["_user"]["first_name"]} ${controller.applicants[index]["_user"]["last_name"]}",
+                        "${controller.applicants[index]["_user"]["lawyerID"]["first_name"]}",
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xff0E0E0E),

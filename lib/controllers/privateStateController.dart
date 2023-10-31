@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lawploy_app/models/privateModel.dart';
+import 'package:lawploy_app/services/AUTH/auth_api_services.dart';
 
 import '../Widget/PopUps/otpPopUp.dart';
 import '../models/myJobModel.dart';
@@ -165,6 +166,7 @@ class PrivateStateController extends GetxController {
   }
   updateApplicants(value) {
     _applicants = value;
+    _applicants.sort((a, b) => DateTime.parse(b["createdAt"]).compareTo(DateTime.parse(a["createdAt"])));
     update();
   }
 
@@ -286,7 +288,6 @@ class PrivateStateController extends GetxController {
       _phonenumberController.text = responseData["data"][0]["phone_number"];
       _codeController.text = responseData["data"][0]["phone_number_country_code"];
 
-      Get.toNamed(piHolderScreen);
     } else {
       updateIsLoading(false);
       Fluttertoast.showToast(
@@ -331,6 +332,8 @@ class PrivateStateController extends GetxController {
         textColor: Colors.white,
         fontSize: 16.0
       );
+
+      getPrivateDetails();
 
     } else {
       updateIsLoading(false);
@@ -675,6 +678,10 @@ class PrivateStateController extends GetxController {
     if(isSuccess){
       updateIsLoading(false);
 
+      Get.back();
+      getMyJobs();
+      
+
       Fluttertoast.showToast(
           msg: "Job Deleted Successfully!",
           toastLength: Toast.LENGTH_LONG,
@@ -704,18 +711,40 @@ class PrivateStateController extends GetxController {
 
   // LOGOUT AUTH
   Future<void> logoutAuth() async{
-    await LocalStorage().deleteUserStorage();
+    updateIsLoading(true);
+    var response = await ApiServices.logoutUserService();
+    var responseData = response!.data;
+    print(responseData);
 
-    Fluttertoast.showToast(
-      msg: "Logout Successful!!!",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 16.0
-    );
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+    updateIsLoading(false);
 
-    Get.offAllNamed(loginScreen);
+      await LocalStorage().deleteUserStorage();
+
+      Fluttertoast.showToast(
+        msg: "Logout Successful!!!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+
+      Get.offAllNamed(loginScreen);
+      
+    } else {
+    updateIsLoading(false);
+      Fluttertoast.showToast(
+        msg: "Logout Failed",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudinary/cloudinary.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lawploy_app/services/AUTH/auth_api_services.dart';
 import 'package:lawploy_app/services/JOBS/jobs_api_services.dart';
 import 'package:lawploy_app/services/PRIVATE-IND/private_api_services.dart';
 
@@ -22,7 +24,7 @@ class CompanyStateController extends GetxController {
   // INSTANT VARIABLES
   String _country = "";
   String _state = "";
-  String _lga = "";
+  String _lga = "nil";
   String _email = "";
   String _password = "";
   String _companyName = "";
@@ -78,6 +80,8 @@ class CompanyStateController extends GetxController {
   bool _isInAppNotificationActive = false;
   bool _isEmailNotificationActive = false;
   bool _isVisibilityOff = false;
+  List<dynamic> _countries = [];
+  List<dynamic> _states = [];
 
   // GETTERS
   String get country => _country;
@@ -117,6 +121,8 @@ class CompanyStateController extends GetxController {
   String get confirmPassword => _confirmPassword;
   bool get hidePassword => _hidePassword;
   String get password => _password;
+  List<dynamic> get countries => _countries;
+  List<dynamic> get states => _states;
 
   // SETTERS
   updateCountry(value) {
@@ -199,6 +205,7 @@ class CompanyStateController extends GetxController {
   }
   updateApplicants(value) {
     _applicants = value;
+    _applicants.sort((a, b) => DateTime.parse(b["createdAt"]).compareTo(DateTime.parse(a["createdAt"])));
     update();
   }
   toggleHidePassword() {
@@ -212,6 +219,21 @@ class CompanyStateController extends GetxController {
   updatePassword(value) {
     _password = value;
     update();
+  }
+  updateCountries(value) {
+    _countries = value;
+    update();
+  }
+  updateStates(value) {
+    _states = value;
+    update();
+  }
+
+  // READ COUNTRY AND STATE DATA 
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('lib/countries.json');
+    final data = await json.decode(response);
+    updateCountries(data);
   }
 
   // GET IMAGE
@@ -334,8 +356,8 @@ class CompanyStateController extends GetxController {
       _lgaController.text = responseData["data"][0]["LGA"];
       // _companyWebsiteController.text = responseData["data"][0]["website"];
       _codeController.text = responseData["data"][0]["phone_number_country_code"];
-
-      Get.toNamed(companyHolderScreen);
+      
+      // Get.toNamed(companyHolderScreen);
 
     } else {
       updateIsLoading(false);
@@ -377,6 +399,8 @@ class CompanyStateController extends GetxController {
         textColor: Colors.white,
         fontSize: 16.0
       );
+
+      getCompanyProfile();
 
     } else {
       updateIsLoading(false);
@@ -756,6 +780,9 @@ class CompanyStateController extends GetxController {
     if(isSuccess){
       updateIsLoading(false);
 
+      Get.back();
+      getMyJobs();
+      
       Fluttertoast.showToast(
         msg: "Job Deleted Successfully!",
         toastLength: Toast.LENGTH_LONG,
@@ -784,18 +811,42 @@ class CompanyStateController extends GetxController {
 
   // LOGOUT AUTH
   Future<void> logoutAuth() async{
-    await LocalStorage().deleteUserStorage();
+    updateIsLoading(true);
 
-    Fluttertoast.showToast(
-      msg: "Logout Successful!!!",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 16.0
-    );
+    var response = await ApiServices.logoutUserService();
+    var responseData = response!.data;
+    print(responseData);
 
-    Get.offAllNamed(loginScreen);
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+    updateIsLoading(false);
+
+      await LocalStorage().deleteUserStorage();
+
+      Fluttertoast.showToast(
+        msg: "Logout Successful!!!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+
+      Get.offAllNamed(loginScreen);
+      
+    } else {
+    updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: "Logout Failed",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
   }
 }

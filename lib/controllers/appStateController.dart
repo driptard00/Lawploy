@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/Briefs/briefsScreen.dart';
 import 'package:lawploy_app/screens/Main/Messages/messageScreen.dart';
+import 'package:lawploy_app/services/BRIEFS/briefs_api_services.dart';
+import 'package:lawploy_app/services/CHAT/chat_api_service.dart';
+import 'package:lawploy_app/services/JOBS/jobs_api_services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:whatsapp/whatsapp.dart';
-import 'package:whatsapp_unilink/whatsapp_unilink.dart';
+import '../Widget/PopUps/otpPopUp.dart';
 import '../routes/app_route_names.dart';
 import '../screens/Main/Company/views/Briefs/briefsScreen.dart';
 import '../screens/Main/Company/views/Home/homeScreen.dart';
@@ -25,6 +28,7 @@ import '../screens/Main/Private Individual/views/Briefs/briefsScreen.dart';
 import '../screens/Main/Private Individual/views/Home/homeScreen.dart';
 import '../screens/Main/Private Individual/views/Jobs/jobsScreen.dart';
 import '../screens/Main/Private Individual/views/Profile/profileScreen.dart';
+import '../services/INTERVIEW/interview_flow_service.dart';
 import '../services/NOTIFICATION/notification_api_service.dart';
 import '../services/ping_service.dart';
 import '../storage/secureStorage.dart';
@@ -89,6 +93,16 @@ class AppStateController extends GetxController {
   File? _selectedImage;
   FirebaseStorage storage = FirebaseStorage.instance;
   List _unseenNotifications = [];
+  List _unreadList = [];
+  List _readList = [];
+  List<dynamic> _conversationList = [];
+  List<dynamic> _recievedList = [];
+  List<dynamic> _sentList = [];
+  List<dynamic> _acceptedList = [];
+  List<dynamic> _myBriefList = [];
+  List<dynamic> _unseen = [];
+  List<dynamic> _sent = [];
+  List<dynamic> _applicants = [];
 
 
   // GETTERS
@@ -108,6 +122,17 @@ class AppStateController extends GetxController {
   bool get isLoading => _isLoading;
   List get notificationList => _notificationList;
   List get unseenNotifications => _unseenNotifications;
+  List get ureadList => _unreadList;
+  List get unseen => _unseen;
+  List get readList => _readList;
+  List<dynamic> get conversationList => _conversationList;
+  List<dynamic> get recievedList => _recievedList;
+  List<dynamic> get acceptedList => _acceptedList;
+  List get myBriefList => _myBriefList;
+  List get sentList => _sentList;
+  List get sent => _sent;
+  List get applicants => _applicants;
+
 
   // SETTERS
   updateActiveIndex(value) {
@@ -144,13 +169,73 @@ class AppStateController extends GetxController {
   }
   updateNotifcationList(value) {
     _notificationList = value;
+    _notificationList.sort(((a, b) => DateTime.parse(a["createdAt"]).compareTo(DateTime.parse(b["createdAt"]))));
+    update();
+  }
+  updateUnreadList(value) {
+    _unreadList = value;
+    update();
+  }
+  updateUnSeenList(value) {
+    _unseen = value;
+    update();
+  }
+  updateConversationList(value) {
+    _conversationList = value;
+    update();
+  }
+  updateReceivedList(value) {
+    _recievedList = value;
+    update();
+  }
+  updateAcceptedList(value) {
+    _acceptedList = value;
+    update();
+  }
+  updateReadList(value) {
+    _readList = value;
+    update();
+  }
+  updateSentList(value) {
+    _sentList = value;
+    update();
+  }
+  updateMyBriefList(value){
+    _myBriefList = value;
+    update();
+  }
+  updateSent(value){
+    _sent = value;
+    update();
+  }
+  updateApplicants(value){
+    _sent = value;
     update();
   }
 
+    String calculateTimeDifference(String createdAt) {
+    final createdAtDateTime = DateTime.parse(createdAt);
+    final now = DateTime.now();
+    final difference = now.difference(createdAtDateTime);
+
+    if (difference.inDays > 0) {
+      return DateFormat('MMM d').format(createdAtDateTime);
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
   // LAUNCH WHATSAPP
-  launchWhatsApp() {
-    final Uri whatsapp = Uri.parse("https://wa.me/08160908587");
-    launchUrl(whatsapp);
+  launchWhatsApp() async{
+    String url = "whatsapp://send?phone=+2348020835264&text=Hello";
+    (await canLaunchUrl(Uri.parse(url)))?
+    launchUrl(Uri.parse(url))
+    :
+    print("Can not open!!");
   }
 
   // LAUNCH EMAIL
@@ -163,7 +248,7 @@ class AppStateController extends GetxController {
     }
     final Uri email = Uri(
       scheme: "mailto",
-      path: "akintadeseun816@gmail.com",
+      path: "Contact@lawploy.com",
       query: encodeQueryParameters(<String, String>{
         'subject': "Hello!!!",
       }),
@@ -185,12 +270,24 @@ class AppStateController extends GetxController {
 
     bool isSuccess = responseData["success"];
     if(isSuccess){
-      String userToken = await LocalStorage().fetchUserToken();
+      // String userToken = await LocalStorage().fetchUserToken2();
+      // String userType = await LocalStorage().fetchType();
 
-      (userToken == "")?
-      Get.toNamed(onboardingScreen)
-      :
-      Get.offAllNamed(loginScreen);
+      // if(userToken == ""){
+      //   Get.toNamed(onboardingScreen);
+      // } else {
+      //   if(userType == "corporation"){
+      //     Get.offAllNamed(companyHolderScreen);
+      //   } else if (userType == "lawyer"){
+      //     Get.offAllNamed(lawyerHolderScreen);
+      //   }else if (userType == "firm"){
+      //     Get.offAllNamed(lawFirmHolderScreen);
+      //   } else if (userType == "private"){
+      //     Get.offAllNamed(piHolderScreen);
+      //   }
+      // }
+
+
       
     } else {
       Fluttertoast.showToast(
@@ -205,6 +302,8 @@ class AppStateController extends GetxController {
     }
   }
 
+
+
   // GET ALL NOTIFICATIONS
   Future<void> getAllNotifications() async{
     updateIsLoading(true);
@@ -218,7 +317,9 @@ class AppStateController extends GetxController {
       updateIsLoading(false);
       
       updateNotifcationList(responseData["data"]);
-      getUnseenNotifications();
+      updateUnreadList(
+        _notificationList.where((notification) => notification["seen"] == false).toList()
+      );
 
     } else {
       updateIsLoading(false);
@@ -262,8 +363,272 @@ class AppStateController extends GetxController {
 
   Future<void> getUnseenNotifications() async{ 
     _unseenNotifications = _notificationList.where((unseen) => unseen["seen"] == true).toList();
+    print("UNSEENNNN::::: $_unseenNotifications");
     update();
   }
+
   
+
+    // GET CONVERSATIONS
+  Future<void> getConversations() async{
+    // updateIsLoading(true);
+
+    String auth = await LocalStorage().fetchUserAUTH();
+
+    var response = await ChatApiServices.getConversationService();
+    var responseData = await response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess) {
+      // updateIsLoading(false);
+
+      // updateChatId(responseData["data"]);
+
+      updateConversationList(responseData["data"]);
+
+      updateUnSeenList(
+        _conversationList.where(
+          (read) => read["lastMessage"] != null
+        ).toList()
+      );
+
+      updateReadList(
+        _unseen.where((read) => read["lastMessage"]["read"] == false && read["lastMessage"]["_sender"] != auth).toList()
+      );
+
+      
+    } else {
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+
+    update();
+  }
+
+  // MARK AS READ
+  Future<void> markMessageRead(String chatID, userID) async{
+
+    var response = await ChatApiServices.markMessageAsReadService(chatID, userID);
+    var responseData = await response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess) {
+      getConversations();
+    } else {
+
+      // Fluttertoast.showToast(
+      //   msg: responseData["error"],
+      //   toastLength: Toast.LENGTH_LONG,
+      //   gravity: ToastGravity.BOTTOM,
+      //   timeInSecForIosWeb: 1,
+      //   backgroundColor: Colors.red,
+      //   textColor: Colors.white,
+      //   fontSize: 16.0
+      // );
+    }
+  }
+
   
+  //  GET ALL RECIEVED INTERVIEWS
+  Future<void> getAllRecievedInterviews() async{
+    updateIsLoading(true);
+
+    var response = await InterviewFlowService.getAllRecievedInterviewsService();
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      updateReceivedList(responseData["data"]);
+      updateAcceptedList(
+        _recievedList.where((pending) => pending["state"] == "Pending").toList()
+      );
+
+      // updateFeedbacks(
+      //   _recievedList.where((feedback) => feedback["feedback_state"] == true).toList()
+      // );
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+          msg: responseData["error"],
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+
+    update();
+        
+  }
+
+  // GET MY BRIEFS SERVICE
+  Future<void> getMyBriefs() async{
+    updateIsLoading(true);
+
+    var response = await BriefsApiServices.getMyBriefsService();
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+      
+      updateMyBriefList(
+        // responseData["data"].where((brief) => brief["createdAt"].toString().split("T").first == 
+        // DateTime.now().toString().split(" ").first).toList()
+        responseData["data"]
+      );
+
+    } else {
+      updateIsLoading(false);
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+    }
+  }
+
+  Future<void> launchGoogleMeet() async {
+    const url = "https://meet.google.com/"; // Replace with your Google Meet URL or meeting code
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication
+      );
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+  
+    //  GET ALL SENT INTERVIEWS
+  Future<void> getAllSentInterviews() async{
+    updateIsLoading(true);
+
+    var response = await InterviewFlowService.getAllSentInterviewService();
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      updateSentList(
+        _sentList = responseData["data"]
+      );
+      updateSent(
+        _sentList.where((sent) => sent["state"] == "Pending").toList()
+      );
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+          msg: responseData["error"],
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+    update();
+  }
+
+  Future<void> getAllJobData() async{
+    updateIsLoading(true);
+
+    var response = await JobsApiServices.getAllJobDataService();
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      updateApplicants(responseData["applicants"]);
+      print("APPLANTS: $_applicants");
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+          msg: responseData["error"],
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+    update();
+  }
+
+  Future<void> acceptInterviewInvite(BuildContext context, String id, String state) async{
+    updateIsLoading(true);
+
+    Map<String, dynamic> details = {
+      "state": state
+    };
+    print(details);
+
+    var response = await InterviewFlowService.acceptOrRejectRecievedInterviewService(details, id);
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      (responseData["data"]["state"] == "Accepted")?
+      PopUps.showPopUps(context, "images/breifSent.png", "Interview Invitation Accepted", "You’ve successfully accepted the interview. You’ll be notified a day before the interview.", "Continue", (){
+        Get.back();
+        Get.back();
+        getAllRecievedInterviews();
+      })
+      :
+      PopUps.showPopUps(context, "images/breifSent.png", "Interview Invitation Rejected", "You’ve rejected the interview. ${responseData["data"]["name"]} will be notified", "Continue", (){
+        Get.back();
+        Get.back();
+        getAllRecievedInterviews();
+      });
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+          msg: responseData["error"],
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+    update();
+  }
+
+
 }

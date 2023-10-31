@@ -69,7 +69,7 @@ class SearchStateController extends GetxController {
   Future<void> searchForLawyers() async{
     updateIsLoading(true);
 
-    var response = await SearchApiService.searchForLawyerService(_country, _yearOfCall, _selectedPracticeArea, _state, lga, "name");
+    var response = await SearchApiService.searchForLawyerService(_country, _yearOfCall, _selectedPracticeArea, _state, lga, "name", _keyword);
     var responseData = response!.data;
     print(responseData);
 

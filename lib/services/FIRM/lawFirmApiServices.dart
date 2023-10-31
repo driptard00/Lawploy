@@ -71,6 +71,36 @@ class LawFirmApiServices {
 
       var response = await Dio().put(
         fullUrl,
+        data: updateLawFirmPasswordDetails,
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": "Bearer $token"
+          }
+        )
+      );
+      return response;
+
+    } on DioError catch (error) {
+      if(error.response != null){
+        return error.response;
+      }
+      throw Exception(error.response);
+    }
+  }
+
+  //  UPDATE FIRM PROFILE ROUTE
+  static Future<Response?> updateFirmProfileService(Map<String, dynamic> details) async{
+    try {
+      String fullUrl = "$baseUrl/firm/profile/update";
+      print("FULLURL:$fullUrl");
+
+      String token = await LocalStorage().fetchUserToken();
+
+      var response = await Dio().put(
+        fullUrl,
+        data: details,
         options: Options(
           headers: {
             "Content-Type": "application/json",

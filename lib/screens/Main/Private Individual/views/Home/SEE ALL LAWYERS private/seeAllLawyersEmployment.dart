@@ -107,13 +107,28 @@ class SeeAllLawyersScreenPrivate extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundImage: (controller.lawyersList[index]["profile_image"] == null)?
-                              const AssetImage("images/profileAvatar.png") as ImageProvider
-                              :
-                              NetworkImage(controller.lawyersList[index]["profile_image"]),
-                            ),
+                                            Stack(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: (controller.lawyersList[index]["profile_image"] == null)?
+                                                  const AssetImage("images/profileAvatar.png") as ImageProvider
+                                                  :
+                                                  NetworkImage(controller.lawyersList[index]["profile_image"]),
+                                                ),
+                                                controller.lawyersList[index]["verify"]?
+                                                const Positioned(
+                                                  right: 0,
+                                                  bottom: 0,
+                                                  child: Icon(
+                                                    Iconsax.verify5,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                                :
+                                                SizedBox()
+                                              ],
+                                            ),
                             const SizedBox(height: 10,),
                             Text(
                               "${controller.lawyersList[index]["first_name"]} ${controller.lawyersList[index]["last_name"]}",
@@ -149,7 +164,7 @@ class SeeAllLawyersScreenPrivate extends StatelessWidget {
                               child: TextButton(
                                 onPressed: () {
                   Get.toNamed(
-                    companyEmploymentScreen,
+                    privateEmploymentScreen,
                     arguments: {
                       "lawyerID": controller.lawyersList[index]["_id"]
                     }

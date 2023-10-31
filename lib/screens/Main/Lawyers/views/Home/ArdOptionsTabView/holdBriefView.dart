@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:lawploy_app/controllers/appStateController.dart';
 
 import '../../../../../../controllers/lawyerStateController.dart';
@@ -70,12 +71,27 @@ class ArdHoldBriefView extends StatelessWidget {
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            CircleAvatar(
-                                              radius: 30,
-                                              backgroundImage: (controller.adrLawyersList[index]["profile_image"] == null)?
-                                              const AssetImage("images/profileAvatar.png") as ImageProvider
-                                              :
-                                              NetworkImage(controller.adrLawyersList[index]["profile_image"]),
+                                            Stack(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: (controller.adrLawyersList[index]["profile_image"] == null)?
+                                                  const AssetImage("images/profileAvatar.png") as ImageProvider
+                                                  :
+                                                  NetworkImage(controller.adrLawyersList[index]["profile_image"]),
+                                                ),
+                                                controller.adrLawyersList[index]["verify"]?
+                                                const Positioned(
+                                                  right: 0,
+                                                  bottom: 0,
+                                                  child: Icon(
+                                                    Iconsax.verify5,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                                :
+                                                SizedBox()
+                                              ],
                                             ),
                                             const SizedBox(height: 10,),
                                             Text(
@@ -88,7 +104,7 @@ class ArdHoldBriefView extends StatelessWidget {
                                             ),
                                             const SizedBox(height: 5,),
                                             Text(
-                                              "${controller.lawyersList[index]["state"]}, ${controller.lawyersList[index]["country"]}",
+                                              "${controller.adrLawyersList[index]["state"]}, ${controller.adrLawyersList[index]["country"]}",
                                               maxLines: 1,
                                               textAlign: TextAlign.center,
                                               overflow: TextOverflow.ellipsis,

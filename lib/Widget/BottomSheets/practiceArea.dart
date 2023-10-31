@@ -8,7 +8,7 @@ class PracticeAreas {
       GetBuilder<LawyerStateController>(
         builder: (controller) {
           return Container(
-            height: 400,
+            height: 700,
             width: Get.width,
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.only(
@@ -29,8 +29,8 @@ class PracticeAreas {
                   ),
                 ),
                 const SizedBox(height: 20,),
-                Row(
-                  children: const [
+                const Row(
+                  children:  [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 15),
                       child: Text(

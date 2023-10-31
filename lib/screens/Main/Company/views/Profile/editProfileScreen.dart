@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lawploy_app/Widget/BottomSheets/industryType.dart';
 import 'package:lawploy_app/controllers/companyStateController.dart';
-import 'package:nigerian_states_and_lga/nigerian_states_and_lga.dart';
 
 import '../../../../../Widget/BottomSheets/CompanyUploadProfilePicture.dart';
 import '../../../../../Widget/BottomSheets/PrivateUploadProfilePicture.dart';
@@ -324,8 +323,20 @@ class CompanyEditProfileScreen extends StatelessWidget {
                               },
                             ),
                             const SizedBox(height: 20,),
-                            TextFormField(
-                              controller: controller.countryController,
+                            DropdownButtonFormField<dynamic>(
+                              isExpanded: true,
+                              // value: controller.countryController.text,
+                              items: controller.countries.map((country) {
+                                return DropdownMenuItem(
+                                  value: country["name"],
+                                  onTap: () {
+                                    controller.updateStates(country["states"]);
+                                  },
+                                  child: Text(
+                                    country["name"]
+                                  ),
+                                );
+                              }).toList(),
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.white,
@@ -346,8 +357,7 @@ class CompanyEditProfileScreen extends StatelessWidget {
                                 labelText: "Country",
                                 labelStyle: const TextStyle(
                                   color: Color(0xffAFAFAF),
-                                  fontSize: 16,
-                                  fontFamily: "CabinetMedium"
+                                  fontSize: 16
                                 ),
                                 floatingLabelStyle: const TextStyle(
                                   color: Color(0xff041C40)
@@ -358,107 +368,21 @@ class CompanyEditProfileScreen extends StatelessWidget {
                               },
                             ),
                             const SizedBox(height: 20,),
-                            (controller.countryController.text == "Nigeria")?
                             Row(
                               children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: DropdownButtonFormField<dynamic>(
-                                    key: const ValueKey('States'),
-                                    value: controller.stateController.text,
-                                    items: NigerianStatesAndLGA.allStates
-                                        .map<DropdownMenuItem<String>>((String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(value),
-                                      );
-                                    }).toList(),
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: const BorderSide(
-                                          color: Color(0xffCFCFCF),
-                                          width: 2
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: const BorderSide(
-                                          color: Color(0xff041C40),
-                                          width: 2
-                                        ),
-                                      ),
-                                      labelText: "State",
-                                      labelStyle: const TextStyle(
-                                        color: Color(0xffAFAFAF),
-                                        fontSize: 16,
-                                        fontFamily: "CabinetMedium"
-                                      ),
-                                      floatingLabelStyle: const TextStyle(
-                                        color: Color(0xff041C40)
-                                      )
-                                    ),
-                                    onChanged: (value) {
-                                      controller.updateState(value);
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 15,),
                                 Expanded(
                                   flex: 1,
                                   child: DropdownButtonFormField<dynamic>(
                                     isExpanded: true,
-                                    // value: controller.lgaController.text,
-                                    items: NigerianStatesAndLGA.getAllNigerianLGAs()
-                                        .map<DropdownMenuItem<String>>((String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(value),
+                                    // value: controller.stateController.text,
+                                    items: controller.states.map((state) {
+                                      return DropdownMenuItem(
+                                        value: state["name"],
+                                        child: Text(
+                                          state["name"]
+                                        ),
                                       );
                                     }).toList(),
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: const BorderSide(
-                                          color: Color(0xffCFCFCF),
-                                          width: 2
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: const BorderSide(
-                                          color: Color(0xff041C40),
-                                          width: 2
-                                        ),
-                                      ),
-                                      labelText: "LGA",
-                                      labelStyle: const TextStyle(
-                                        color: Color(0xffAFAFAF),
-                                        fontSize: 16,
-                                        fontFamily: "CabinetMedium"
-                                      ),
-                                      floatingLabelStyle: const TextStyle(
-                                        color: Color(0xff041C40)
-                                      )
-                                    ),
-                                    onChanged: (value) {
-                                      controller.updateLGA(value);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            )
-                            :
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: TextFormField(
-                                    controller: controller.stateController,
                                     decoration: InputDecoration(
                                       filled: true,
                                       fillColor: Colors.white,
@@ -479,8 +403,7 @@ class CompanyEditProfileScreen extends StatelessWidget {
                                       labelText: "State",
                                       labelStyle: const TextStyle(
                                         color: Color(0xffAFAFAF),
-                                        fontSize: 16,
-                                        fontFamily: "CabinetMedium"
+                                        fontSize: 16
                                       ),
                                       floatingLabelStyle: const TextStyle(
                                         color: Color(0xff041C40)
@@ -513,7 +436,7 @@ class CompanyEditProfileScreen extends StatelessWidget {
                                           width: 2
                                         ),
                                       ),
-                                      labelText: "LGA/Region",
+                                      labelText: "LGA",
                                       labelStyle: const TextStyle(
                                         color: Color(0xffAFAFAF),
                                         fontSize: 16,
@@ -523,6 +446,8 @@ class CompanyEditProfileScreen extends StatelessWidget {
                                         color: Color(0xff041C40)
                                       )
                                     ),
+                                    cursorColor: const Color(0xff041C40),
+                                    validator: ValidationBuilder().build(),
                                     onChanged: (value) {
                                       controller.updateLGA(value);
                                     },

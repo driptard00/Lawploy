@@ -1,16 +1,49 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_file_downloader/flutter_file_downloader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 import '../../routes/app_route_names.dart';
 
 
 class JobApplicationBottomSheet {
-  static showJobApplicationBottomSheet (String url, fileName, id, auth) {
+  static showJobApplicationBottomSheet (String url, fileName, id, auth, name, coverLetter) {
+
+    downloadFile() async {
+      final status = await Permission.storage.request();
+
+      if (status.isDenied){
+        Fluttertoast.showToast(
+          msg: "Permission denied",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+        );
+
+      } else {
+
+        final externalDir = await getExternalStorageDirectory();
+
+        final taskID = await FlutterDownloader.enqueue(
+          url: url, 
+          savedDir: externalDir!.path,
+          fileName: fileName,
+          showNotification: true,
+          openFileFromNotification: true,
+        );
+      }    
+    }
     Get.bottomSheet(
       Container(
-        height: 280,
+        height: 400,
         width: Get.width,
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.only(
@@ -31,8 +64,8 @@ class JobApplicationBottomSheet {
               ),
             ),
             const SizedBox(height: 20,),
-            Row(
-              children: const [
+            const Row(
+              children:  [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 15),
                   child: Text(
@@ -48,36 +81,87 @@ class JobApplicationBottomSheet {
             ),
             const SizedBox(height: 10,),
             ListTile(
-              onTap: (){
+              onTap: () async{
                 FileDownloader.downloadFile(
                   url: url,
-                  name: fileName,
-                  onProgress: (fileName, double progress) {
-                    print('FILE fileName HAS PROGRESS $progress');
+                  onProgress: (name, progress) {
                     Fluttertoast.showToast(
-                        msg: "File Downloading...",
-                        toastLength: Toast.LENGTH_LONG,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIosWeb: 1,
-                        backgroundColor: Colors.blue,
-                        textColor: Colors.white,
-                        fontSize: 16.0
-                    );
+                      msg: "Downloading file $progress",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
+                      fontSize: 16.0);
                   },
-                  onDownloadCompleted: (String path) {
+                  onDownloadCompleted: (value) {
+                    print('path  $value ');
                     Fluttertoast.showToast(
-                        msg: "File Downloaded Check Files",
-                        toastLength: Toast.LENGTH_LONG,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIosWeb: 1,
-                        backgroundColor: Colors.green,
-                        textColor: Colors.white,
-                        fontSize: 16.0
-                    );
+                      msg: "File downloaded in $value",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
+                      fontSize: 16.0);
                   },
-                );              },
+                  onDownloadError: (value) {
+                    Fluttertoast.showToast(
+                      msg: "Download Failed!",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                  }
+                );
+                  // Make a GET request to the URL
+                // final response = await http.get(Uri.parse(url));
+
+                // // Check if the request was successful
+                // if (response.statusCode == 200) {
+                //   // Get the app's documents directory
+                //   final appDocDir = await getApplicationDocumentsDirectory();
+
+                //   // Create a File object to save the downloaded file
+                //   final file = File('${appDocDir.path}/$fileName');
+
+                //   // Write the downloaded bytes to the file
+                //   await file.writeAsBytes(response.bodyBytes);
+
+                //   print('File downloaded to: ${file.path}');
+                // } else {
+                //   print('Error downloading file: ${response.reasonPhrase}');
+                // }
+              },
               title: Text(
-                "Download James Resume",
+                "Download $name Resume",
+                style: const TextStyle(
+                  color: Color(0xff0E0E0E),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Divider(
+                color: Color(0xffE7E7E7),
+              ),
+            ),
+            ListTile(
+              onTap: () {
+                print(coverLetter);
+                Get.toNamed(
+                  coverLetterScreen,
+                  arguments: {
+                    "cover_letter": coverLetter
+                  }
+                );
+              },
+              title: const Text(
+                "View Cover Letter",
                 style: TextStyle(
                   color: Color(0xff0E0E0E),
                   fontSize: 16,
@@ -94,7 +178,7 @@ class JobApplicationBottomSheet {
             ListTile(
               onTap: () {
                 Get.toNamed(
-                    companySendInterviewInvite,
+                    firmSendInterviewInvite,
                   arguments: {
                       "id": id,
                     "auth": auth

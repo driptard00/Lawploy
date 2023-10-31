@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:lawploy_app/Widget/BottomSheets/payforbriefBottomSheet.dart';
 import 'package:lawploy_app/controllers/chat_controller.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 import 'package:lawploy_app/services/flutter_wave/flutter_wave_service.dart';
@@ -241,7 +242,7 @@ class ProfileHoldBriefScreen extends StatelessWidget {
                                         alignment: Alignment.centerRight,
                                         child: InkWell(
                                           onTap: () {
-                                            _chatController.createConversation(controller.otherLawyer.auth!, controller.otherLawyer.firstName, controller.otherLawyer.lastName, controller.otherLawyer.profileImage);
+                                            _chatController.createConversation(controller.otherLawyer.auth!, controller.otherLawyer.firstName, controller.otherLawyer.lastName, controller.otherLawyer.profileImage, controller.otherLawyer.auth!);
                                           },
                                           child: Container(
                                             height: 41,
@@ -257,9 +258,9 @@ class ProfileHoldBriefScreen extends StatelessWidget {
                                                 ),
                                               ]
                                             ),
-                                            child: Row(
+                                            child: const Row(
                                               mainAxisAlignment: MainAxisAlignment.center,
-                                              children: const [
+                                              children: [
                                                 Icon(
                                                   Iconsax.messages5,
                                                   size: 20,
@@ -386,27 +387,11 @@ class ProfileHoldBriefScreen extends StatelessWidget {
                           width: Get.width,
                           child: TextButton(
                             onPressed: () {
-                              // Get.toNamed(
-                              //   paymentSummaryScreen,
-                              //   arguments: {
-                              //     "amount": controller.otherLawyer.briefMinAmount!,
-                              //     "userAuth": controller.otherLawyer.auth!,
-                              //     "userID": controller.otherLawyer.id!
-                              //   }
-                              // );
-                              FlutterWaveService().handlePaymentInitialization(
-                                  context,
-                                  "${controller.otherLawyer.firstName} ${controller.otherLawyer.lastName}",
-                                  controller.otherLawyer.phoneNumber,
-                                  controller.otherLawyer.email,
-                                  controller.otherLawyer.briefMinAmount.toString(),
-                                {
-                                  "senderId": controller.lawyer.auth,
-                                  "recieverId": controller.otherLawyer.auth,
-                                  "reason": "For payment",
-                                  "type": "brief"
-                                }
-                              );
+                              TextEditingController _amountController = TextEditingController();
+                              _amountController.text = controller.otherLawyer.briefMinAmount!.toString();
+
+                              PayForBriefBottomSheet.showPayForBriefBottomSheet(controller.otherLawyer, controller.lawyer, _amountController ,context);
+
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white.withOpacity(0),
@@ -418,7 +403,7 @@ class ProfileHoldBriefScreen extends StatelessWidget {
                             child: Text(
                               "Continue N${format.format(controller.otherLawyer.briefMinAmount!)}",
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Color(0xff041C40),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700

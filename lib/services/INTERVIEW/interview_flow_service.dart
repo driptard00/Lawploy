@@ -93,7 +93,7 @@ class InterviewFlowService {
   // SEND FEEDBACK OR REFERENCE LETTER SERVICE
   static Future<Response?> sendFeedbackService(Map<String, dynamic> details, String id) async{
     try {
-      String fullUrl = "$baseUrl$sendFeedback";
+      String fullUrl = "$baseUrl$sendFeedback$id";
       print("FULLURL:$fullUrl");
 
       String token = await LocalStorage().fetchUserToken();

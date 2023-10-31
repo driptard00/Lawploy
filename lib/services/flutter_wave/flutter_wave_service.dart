@@ -4,7 +4,8 @@ import 'package:flutterwave_standard/flutterwave.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 
 class FlutterWaveService {
-  handlePaymentInitialization(BuildContext context, String name, phoneNumber, email, amount, Map<String, dynamic> metaData) async {
+  handlePaymentInitialization(BuildContext context, String name, phoneNumber, email, dynamic amount, String id) async {
+
     final Customer customer = Customer(
         name: name,
         phoneNumber: phoneNumber,
@@ -15,13 +16,13 @@ class FlutterWaveService {
         publicKey: dotenv.env["FLUTTER_WAVE_PUBLIC_KEY"]!,
         currency: "NGN",
         redirectUrl: splashScreen,
-        txRef: DateTime.now().toString(),
+        txRef: id,
         amount: amount,
         customer: customer,
         paymentOptions: "card",
         customization: Customization(title: "My Payment"),
-        meta: metaData,
-        isTestMode: true ).charge();
+        isTestMode: true 
+    ).charge();
   }
 
 }

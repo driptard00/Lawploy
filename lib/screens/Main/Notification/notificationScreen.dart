@@ -3,14 +3,18 @@ import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:lawploy_app/controllers/lawyerStateController.dart';
 
 import '../../../controllers/appStateController.dart';
+import '../../../controllers/notification_state_controller.dart';
 import '../../../routes/app_route_names.dart';
 
 class NotificationScreen extends StatelessWidget {
   NotificationScreen({super.key});
 
   final AppStateController _appStateController = Get.put(AppStateController());
+  final NotificationStateController _notificationStateController = Get.put(NotificationStateController());
+
   final userType = Get.arguments["type"];
 
   @override
@@ -22,7 +26,6 @@ class NotificationScreen extends StatelessWidget {
       _appStateController.getAllNotifications();
     },);
 
-
     return GetBuilder<AppStateController>(
       builder: (controller) {
         return Scaffold(
@@ -32,6 +35,7 @@ class NotificationScreen extends StatelessWidget {
             leading: InkWell(
               onTap: () {
                 Get.back();
+                // _appStateController.getAllNotifications();
               },
               child: const Icon(
                 Iconsax.arrow_left,
@@ -99,34 +103,36 @@ class NotificationScreen extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10)
                 ),
-                child: GroupedListView<dynamic, String>(
-                  elements: controller.notificationList,
+                child: 
+                GroupedListView<dynamic, String>(
                   order: GroupedListOrder.DESC,
+                  elements: controller.notificationList,
                   groupBy: (element) {
-                    String timestamp = element['createdAt'];
-                    var dateTime = DateTime.parse(timestamp).toLocal();
-                    var now = DateTime.now();
-                    bool isToday = dateTime.year == now.year &&
-                    dateTime.month == now.month &&
-                    dateTime.day == now.day;
-
-                    // Format date and time
-                    String formattedDate;
-                    if (isToday) {
-                      formattedDate = 'Today';
-                    } else {
-                      formattedDate = DateFormat('d MMM, y').format(dateTime);
-                    }
-                    final formattedTime = DateFormat('h:mma').format(dateTime).toLowerCase();
-                    return formattedDate;
-                  } ,
-                  groupSeparatorBuilder: (String groupByValue) {
+                    final createdAt = DateTime.parse(element['createdAt']);
+                    final now = DateTime.now();
+                    final difference = now.difference(createdAt);
                     
+                    if (difference.inDays == 0) {
+                      return 'Today';
+                    } else if (difference.inDays == 1) {
+                      return 'Yesterday';
+                    } else {
+                      // return DateFormat('d MMM y').format(createdAt);
+                      return element['createdAt'].toString().split("T").first;
+                    }
+                  },
+                  groupSeparatorBuilder: (String groupByValue) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                      child: Text(groupByValue),
+                      child: Text(
+                        (groupByValue == "Yesterday" || groupByValue == "Today")?
+                        groupByValue
+                        :
+                        DateFormat('d MMM, y').format(DateTime.parse(groupByValue).toLocal())
+                        // groupByValue
+                      ),
                     );
-                  } ,
+                  },
                   primary: false,
                   shrinkWrap: true,
                   itemBuilder: (context, dynamic element) {
@@ -153,7 +159,7 @@ class NotificationScreen extends StatelessWidget {
                       Get.toNamed(myBriefsScreen)
                       :
                       (element["type"] == "interview")?
-                      (userType == "corporation" || userType == "private")?
+                      (userType == "corporation" || userType == "private" || userType == "firm")?
                       Get.toNamed(companyinterviewScreen)
                       :
                       Get.toNamed(jobScreen)
@@ -249,8 +255,10 @@ class NotificationScreen extends StatelessWidget {
                         :
                       null
                   );
+                  
                   },
                 ),
+              
               ),
             ),
           )
@@ -258,4 +266,5 @@ class NotificationScreen extends StatelessWidget {
       }
     );
   }
+
 }

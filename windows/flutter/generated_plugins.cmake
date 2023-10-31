@@ -5,12 +5,13 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   emoji_picker_flutter
+  file_saver
   firebase_core
   flutter_secure_storage_windows
-  flutter_webrtc
   pdfx
   permission_handler_windows
   record_windows
+  syncfusion_pdfviewer_windows
   url_launcher_windows
 )
 

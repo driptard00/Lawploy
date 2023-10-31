@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:lawploy_app/controllers/appStateController.dart';
 import 'package:lawploy_app/controllers/authStateController.dart';
 import 'package:lawploy_app/controllers/lawyerStateController.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/Home/HomeTabView/allTabViews.dart';
@@ -11,16 +12,19 @@ import 'package:lawploy_app/screens/Main/Lawyers/views/Home/HomeTabView/financeT
 import 'package:lawploy_app/screens/Main/Lawyers/views/Home/HomeTabView/litigationTabView.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/Home/HomeTabView/oilAndGas.dart';
 
+import '../../../../../controllers/notification_state_controller.dart';
 import '../../../../../routes/app_route_names.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
 
   final AuthStateController _authStateController = Get.put(AuthStateController());
+  final LawyerStateController _lawyerStateController = Get.put(LawyerStateController());
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<LawyerStateController>(
+
+    return GetBuilder<AppStateController>(
       builder: (controller) {
         return DefaultTabController(
           length: _authStateController.practiceAreas.length + 1,
@@ -57,70 +61,117 @@ class HomeScreen extends StatelessWidget {
                                   Row(
                                     children: [
                                       const Expanded(
-                                        flex: 9,
+                                        flex: 8,
                                         child: Text(
                                           "Find the Best Lawyer in the Field",
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 24,
-                                            fontFamily: "CabinetBold"
-                                          ),
+                                            fontFamily: "CabinetBold"),
                                         ),
                                       ),
+                                      const SizedBox(width: 10,),
                                       Expanded(
-                                        flex: 1,
-                                        child: Center(
-                                          child: InkWell(
-                                            onTap: () {
-                                              Get.toNamed(
-                                                  notificationScreen,
-                                                arguments: {
-                                                    "type": controller.lawyer.type
-                                                }
-                                              );
-                                            },
-                                            child: const Badge(
-                                              child: Icon(
-                                                  Iconsax.notification,
-                                                  color: Colors.white,
-                                                  size: 24,
+                                        flex: 2,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 1,
+                                              child: InkWell(
+                                                onTap: () {
+                                                  Get.toNamed(lawyerInterviewScreen);
+                                                },
+                                                child: Badge(
+                                                  isLabelVisible: (controller.sent.isNotEmpty || controller.applicants.isNotEmpty)?
+                                                  true
+                                                  :
+                                                  false,
+                                                  label: Text(
+                                                    ((controller.sent.length + controller.applicants.length) > 9)?
+                                                    "9+"
+                                                    :
+                                                    "${controller.sent.length + controller.applicants.length}",
+                                                    style: const TextStyle(
+                                                      color: Colors.white
+                                                    ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Iconsax.maximize_2,
+                                                    color: Colors.white,
+                                                    size: 24,
+                                                  ),
                                                 ),
+                                              ),
                                             ),
-                                          ),
+                                            const SizedBox(width: 10,),
+                                            Expanded(
+                                              flex: 1,
+                                              child: InkWell(
+                                                onTap: () {
+                                                  Get.toNamed(
+                                                      notificationScreen,
+                                                      arguments: {
+                                                        "type": _lawyerStateController.lawyer.type
+                                                      }
+                                                  );
+                                                },
+                                                child: Badge(
+                                                  isLabelVisible: (controller.ureadList.isNotEmpty)?
+                                                  true
+                                                  :
+                                                  false,
+                                                  label: Text(
+                                                    (controller.ureadList.length > 9)?
+                                                    "9+"
+                                                    :
+                                                    controller.ureadList.length.toString(),
+                                                    style: const TextStyle(
+                                                      color: Colors.white
+                                                    ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Iconsax.notification,
+                                                    color: Colors.white,
+                                                    size: 24,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          ],
                                         ),
                                       )
                                     ],
                                   ),
                                   TextFormField(
                                     onTap: () {
-                                      FocusScope.of(context).requestFocus(FocusNode());
-                                      Get.toNamed(searchScreen);
-                                    },
+                                        FocusScope.of(context).requestFocus(FocusNode());
+                                        Get.toNamed(searchScreen);
+                                      },
                                     decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide.none,
-                                        borderRadius: BorderRadius.circular(10)
-                                      ),
-                                      focusedBorder: InputBorder.none,
-                                      prefixIcon: const Icon(
-                                        Iconsax.search_normal,
-                                        color: Color(0xffAFAFAF),
-                                        size: 16,
-                                      ),
-                                      suffixIcon: const Icon(
-                                        Iconsax.menu_1,
-                                        color: Color(0xffD3A518),
-                                        size: 20,
-                                      ),
-                                      contentPadding: EdgeInsets.zero,
-                                      labelText: "Search for lawyer",
-                                      labelStyle: const TextStyle(
-                                        color: Color(0xffAFAFAF),
-                                        fontSize: 16
-                                      )
-                                    ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                        focusedBorder: InputBorder.none,
+                                        prefixIcon: const Icon(
+                                          Iconsax.search_normal,
+                                          color: Color(0xffAFAFAF),
+                                          size: 16,
+                                        ),
+                                        suffixIcon: const Icon(
+                                          Iconsax.menu_1,
+                                          color: Color(0xffD3A518),
+                                          size: 20,
+                                        ),
+                                        contentPadding: EdgeInsets.zero,
+                                        labelText: "Search for lawyer",
+                                        labelStyle: const TextStyle(
+                                            color: Color(0xffAFAFAF),
+                                            fontSize: 16
+                                          )
+                                        ),
                                   )
                                 ],
                               ),
@@ -142,7 +193,7 @@ class HomeScreen extends StatelessWidget {
                             height: 20,
                           ),
                           const Text(
-                            "Practice Area",
+                            "Top Practice Areas",
                             style: TextStyle(
                               color: Color(0xff03132B),
                               fontSize: 16,

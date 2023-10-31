@@ -6,7 +6,7 @@ import '../../storage/secureStorage.dart';
 class SearchApiService {
   
   //  SEARCH FOR LAWYERS SERVICE
-  static Future<Response?> searchForLawyerService(String country, year, specialization, state, lga, sortby) async{
+  static Future<Response?> searchForLawyerService(String country, year, specialization, state, lga, sortby, keyword) async{
     try {
       String fullUrl = "$baseUrl$searchForLawyerRoute";
       print("FULLURL:$fullUrl");
@@ -28,7 +28,9 @@ class SearchApiService {
           "specialization": specialization,
           "state": state,
           "lga": lga,
+          "keyword": keyword,
           "sortby": sortby,
+          
         }
       );
       return response;

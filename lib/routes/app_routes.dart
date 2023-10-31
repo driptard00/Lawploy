@@ -12,16 +12,22 @@ import 'package:lawploy_app/screens/Main/BreifsScreen/briefsScreen.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/getLawFirmProfileScreen.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/holderScreen.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/views/Briefs/briefDescriptionScreen.dart';
+import 'package:lawploy_app/screens/Main/Law%20Firm/views/Home/interviewScreenTabs/coverLetterScreen.dart';
+import 'package:lawploy_app/screens/Main/Law%20Firm/views/Home/interviewScreenTabs/interviewScreen.dart';
+import 'package:lawploy_app/screens/Main/Law%20Firm/views/Home/interviewScreenTabs/sendInterviewInvite.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/views/Home/sendBriefScreen.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/views/Profile/editProfileScreen.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/views/Settings/updatePasswordScreen.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/holderScreen.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/Briefs/briefDescriptionScreen.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/Briefs/briefsScreen.dart';
+import 'package:lawploy_app/screens/Main/Lawyers/views/Home/interviewScreenTabs/inputFeedbackScreen.dart';
+import 'package:lawploy_app/screens/Main/Lawyers/views/Home/interviewScreenTabs/interviewScreen.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/JOBS/jobDetailsScreen.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/Settings/updatePasswordScreen.dart';
 import 'package:lawploy_app/screens/Main/Lawyers/views/interview/jobsScreen.dart';
 import 'package:lawploy_app/screens/Main/Messages/chatRoom.dart';
+import 'package:lawploy_app/screens/Main/Messages/pdfViewerScreen.dart';
 import 'package:lawploy_app/screens/Main/Notification/notificationScreen.dart';
 import 'package:lawploy_app/screens/Main/PAYMENT/paymentScreen.dart';
 import 'package:lawploy_app/screens/Main/Private%20Individual/views/Jobs/jobDetailScreen.dart';
@@ -264,6 +270,12 @@ List<GetPage> getPages = [
     name: searchScreen,
     page: () => SearchScreen(),
   ),
+  
+  // ======== COVER LETTER SCREEN ==========
+  GetPage(
+    name: coverLetterScreen,
+    page: () => CoverLetterScreen(),
+  ),
 
   // ======== LAWYER MAIN SCREEN ==========
   GetPage(
@@ -301,6 +313,14 @@ List<GetPage> getPages = [
   GetPage(
     name: lawyerBriefDescriptionScreen,
     page: () => LawyerBriefDescriptionScreen(),
+  ),
+  GetPage(
+    name: lawyerInterviewScreen,
+    page: () => LawyerInterviewScreen(),
+  ),
+  GetPage(
+    name: inputFeedbackScreen,
+    page: () => InputFeedbackScreen(),
   ),
 
 
@@ -341,6 +361,14 @@ List<GetPage> getPages = [
     name: firmBriefDescriptionScreen,
     page: () => FirmBriefDescriptionScreen(),
   ),
+  GetPage(
+    name: firmInterviewScreen,
+    page: () => FirmInterViewScreen(),
+  ),
+  GetPage(
+    name: firmSendInterviewInvite,
+    page: () => FirmSendInterviewInviteScreen(),
+  ),
 
   // ======== COMPANY MAIN SCREEN ==========
   GetPage(
@@ -350,10 +378,6 @@ List<GetPage> getPages = [
   GetPage(
     name: companyeditProfileScreen,
     page: () => CompanyEditProfileScreen(),
-  ),
-  GetPage(
-    name: companyswitchAccountScreen,
-    page: () => CompanySwitchAccountScreen(),
   ),
   GetPage(
     name: companyPostJobOfferScreen,
@@ -396,10 +420,6 @@ List<GetPage> getPages = [
   GetPage(
     name: pieditProfileScreen,
     page: () => PIEditProfileScreen(),
-  ),
-  GetPage(
-    name: piswitchAccountScreen,
-    page: () => PISwitchAccountScreen(),
   ),
   GetPage(
     name: piPostJobOfferScreen,
@@ -475,4 +495,8 @@ List<GetPage> getPages = [
     page: () => SwitchWorkDetailsScreen()
   ),
 
+  GetPage(
+    name: pdfviewer,
+    page: () => PdfViewerScreen()
+  ),
 ]; 

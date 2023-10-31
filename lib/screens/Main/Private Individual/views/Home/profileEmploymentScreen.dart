@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:lawploy_app/controllers/chat_controller.dart';
 import 'package:lawploy_app/controllers/privateStateController.dart';
 
 import '../../../../../controllers/lawyerStateController.dart';
@@ -11,6 +12,7 @@ class PrivateProfileEmploymentScreen extends StatelessWidget {
   PrivateProfileEmploymentScreen({super.key});
 
   final PrivateStateController _privateStateController = Get.find<PrivateStateController>();
+  final ChatController _chatController = Get.put(ChatController());
 
   final id = Get.arguments["lawyerID"];
   var format = NumberFormat("#,##0");
@@ -236,38 +238,44 @@ class PrivateProfileEmploymentScreen extends StatelessWidget {
                                     child: Center(
                                       child: Align(
                                         alignment: Alignment.centerRight,
-                                        child: Container(
-                                          height: 41,
-                                          width: 84,
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.circular(25),
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                    blurRadius: 5,
-                                                    offset: Offset(1, 1),
-                                                    color: Color.fromARGB(1, 0, 0, 0)
+                                        child: InkWell(
+                                                                               onTap: () {
+                                            _chatController.createConversation(controller.otherLawyer.auth!, controller.otherLawyer.firstName, controller.otherLawyer.lastName, controller.otherLawyer.profileImage, controller.otherLawyer.auth!);
+                                          
+                                        },
+                                          child: Container(
+                                            height: 41,
+                                            width: 84,
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(25),
+                                                boxShadow: const [
+                                                  BoxShadow(
+                                                      blurRadius: 5,
+                                                      offset: Offset(1, 1),
+                                                      color: Color.fromARGB(1, 0, 0, 0)
+                                                  ),
+                                                ]
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: const [
+                                                Icon(
+                                                  Iconsax.messages5,
+                                                  size: 20,
+                                                  color: Color(0xffD3A518),
                                                 ),
-                                              ]
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: const [
-                                              Icon(
-                                                Iconsax.messages5,
-                                                size: 20,
-                                                color: Color(0xffD3A518),
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Text(
-                                                "Chat",
-                                                style: TextStyle(
-                                                    color: Color(0xff0E0E0E),
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w700
+                                                SizedBox(width: 5,),
+                                                Text(
+                                                  "Chat",
+                                                  style: TextStyle(
+                                                      color: Color(0xff0E0E0E),
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w700
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),

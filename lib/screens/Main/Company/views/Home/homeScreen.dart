@@ -6,6 +6,7 @@ import 'package:lawploy_app/controllers/authStateController.dart';
 import 'package:lawploy_app/controllers/companyStateController.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 import 'package:lawploy_app/screens/Main/Company/views/Home/HomeTabView/allTabViews.dart';
+import '../../../../../controllers/notification_state_controller.dart';
 import 'HomeTabView/ardTabView.dart';
 import 'HomeTabView/corporateTabView.dart';
 import 'HomeTabView/financeTabView.dart';
@@ -19,11 +20,13 @@ class CompanyHomeScreen extends StatelessWidget {
   final AuthStateController _authStateController =
       Get.put(AuthStateController());
 
+  final NotificationStateController _notificationStateController = Get.put(NotificationStateController());
+  final CompanyStateController _companyStateController = Get.put(CompanyStateController());
 
   @override
   Widget build(BuildContext context) {
 
-    return GetBuilder<CompanyStateController>(
+    return GetBuilder<AppStateController>(
       builder: (controller) {
       return DefaultTabController(
         length: _authStateController.practiceAreas.length + 1,
@@ -80,10 +83,25 @@ class CompanyHomeScreen extends StatelessWidget {
                                               onTap: () {
                                                 Get.toNamed(companyinterviewScreen);
                                               },
-                                              child: const Icon(
-                                                Iconsax.maximize_2,
-                                                color: Colors.white,
-                                                size: 24,
+                                              child: Badge(
+                                                isLabelVisible: (controller.sent.isNotEmpty || controller.applicants.isNotEmpty)?
+                                                true
+                                                :
+                                                false,
+                                                label: Text(
+                                                  ((controller.sent.length + controller.applicants.length) > 9)?
+                                                  "9+"
+                                                  :
+                                                  "${controller.sent.length + controller.applicants.length}",
+                                                  style: const TextStyle(
+                                                    color: Colors.white
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Iconsax.maximize_2,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -93,13 +111,26 @@ class CompanyHomeScreen extends StatelessWidget {
                                             child: InkWell(
                                               onTap: () {
                                                 Get.toNamed(
-                                                    notificationScreen,
-                                                    arguments: {
-                                                      "type": controller.corporation.type
-                                                    }
+                                                  notificationScreen,
+                                                  arguments: {
+                                                    "type": _companyStateController.corporation.type
+                                                  }
                                                 );
                                               },
-                                              child:  const Badge(
+                                              child: Badge(
+                                                isLabelVisible: (controller.ureadList.isNotEmpty)?
+                                                true
+                                                :
+                                                false,
+                                                label: Text(
+                                                  (controller.ureadList.length > 9)?
+                                                  "9+"
+                                                  :
+                                                  controller.ureadList.length.toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white
+                                                  ),
+                                                ),
                                                 child: const Icon(
                                                   Iconsax.notification,
                                                   color: Colors.white,
@@ -164,7 +195,7 @@ class CompanyHomeScreen extends StatelessWidget {
                           height: 20,
                         ),
                         const Text(
-                          "Practice Area",
+                          "Top Practice Areas",
                           style: TextStyle(
                               color: Color(0xff03132B),
                               fontSize: 16,

@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lawploy_app/controllers/authStateController.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
-import 'package:nigerian_states_and_lga/nigerian_states_and_lga.dart';
 
 class AllAvailableAccountsScreen extends StatelessWidget {
   AllAvailableAccountsScreen({super.key});

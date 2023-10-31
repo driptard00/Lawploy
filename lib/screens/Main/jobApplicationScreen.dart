@@ -58,6 +58,10 @@ class JobApplicationScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 20,),
                         TextFormField(
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(FocusNode());
+                            controller.getFile();
+                          },
                           controller: controller.fileNameController,
                           decoration: InputDecoration(
                             filled: true,

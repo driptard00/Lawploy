@@ -79,8 +79,24 @@ class InterviewView extends StatelessWidget {
                     } else {
                       formattedDate = DateFormat('d MMM, y').format(dateTime);
                     }
-
                     final formattedTime = DateFormat('h:mma').format(dateTime).toLowerCase();
+
+                    String timestamp1 = controller.allRecievedInterviews[index]["invitation"] ?? DateTime.now().toString();
+                    var dateTime1 = DateTime.parse(timestamp1).toLocal();
+                    var now1= DateTime.now();
+                    bool isToday1 = dateTime1.year == now1.year &&
+                    dateTime1.month == now1.month &&
+                    dateTime1.day == now1.day;
+
+                    // Format date and time
+                    String formattedDate1;
+                    if (isToday1) {
+                      formattedDate1 = 'Today';
+                    } else {
+                      formattedDate1 = DateFormat('d MMM, y').format(dateTime1);
+                    }
+                    final formattedTime1 = DateFormat('h:mma').format(dateTime1).toLowerCase();
+
                     return Container(
                       padding: EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
@@ -93,38 +109,18 @@ class InterviewView extends StatelessWidget {
                             leading: CircleAvatar(
                               radius: 20,
                               backgroundImage: (
-                                  controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null ?
-                                  controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"] == null
-                                  :
-                                  controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null ?
-                                  controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"] == null
-                                  :
-                                  controller.allRecievedInterviews[index]["_creator"]["firmID"] != null ?
-                                  controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"] == null
-                                  :
-                                  controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"] == null
+                                controller.allRecievedInterviews[index]['image'] == null
                               )?
                               const AssetImage("images/profileAvatar.png") as ImageProvider
                                   :
                               NetworkImage(
-                                  (controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"]
-                                  :
-                                  (controller.allRecievedInterviews[index]["_creator"]["firmID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"]
-                                  :
-                                    (controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"]
-                                  :
-                                    (controller.allRecievedInterviews[index]["_creator"]["privateID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"]
-                                        :
-                                        null
+                                controller.allRecievedInterviews[index]['image']
                               ),
                             ),
+                          
                           title: Text(
                             controller.allRecievedInterviews[index]["name"],
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xff0E0E0E),
                               fontWeight: FontWeight.bold
@@ -132,10 +128,10 @@ class InterviewView extends StatelessWidget {
                           ),
                           subtitle: Row(
                             children: [
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  "15th Mar, 2023",
-                                  style: TextStyle(
+                                  formattedDate,
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xff5E5E5E),
                                   ),
@@ -160,9 +156,9 @@ class InterviewView extends StatelessWidget {
                                 width: 10,
                               ),
                               Expanded(
-                                child: const Text(
-                                  "10:00 AM",
-                                  style: TextStyle(
+                                child:  Text(
+                                  formattedTime,
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xff5E5E5E),
                                   ),
@@ -175,35 +171,14 @@ class InterviewView extends StatelessWidget {
                               Get.toNamed(
                                   interviewJobDetailScreen,
                                 arguments: {
-                                    "date": formattedDate,
-                                    "time": formattedTime,
+                                  "date": formattedDate1,
+                                  "time": formattedTime1,
                                     "image": (
-                                        controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null ?
-                                        controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"] == null
-                                            :
-                                        controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null ?
-                                        controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"] == null
-                                            :
-                                        controller.allRecievedInterviews[index]["_creator"]["firmID"] != null ?
-                                        controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"] == null
-                                            :
-                                        controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"] == null
+                                      controller.allRecievedInterviews[index]['image'] == null
                                     )?
                                     null
                                     :
-                                    (controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"]
-                                        :
-                                    (controller.allRecievedInterviews[index]["_creator"]["firmID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"]
-                                        :
-                                    (controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"]
-                                        :
-                                    (controller.allRecievedInterviews[index]["_creator"]["privateID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"]
-                                    :
-                                   null,
+                                    controller.allRecievedInterviews[index]['image'],
                                   "name": controller.allRecievedInterviews[index]["name"],
                                   "id": controller.allRecievedInterviews[index]["_id"],
                                   "jobTitle": controller.allRecievedInterviews[index]["job_title"],

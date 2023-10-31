@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lawploy_app/controllers/authStateController.dart';
 import 'package:lawploy_app/controllers/jobStateController.dart';
-import 'package:nigerian_states_and_lga/nigerian_states_and_lga.dart';
 
 import '../../../../../Widget/BottomSheets/positionTypes.dart';
 import '../../../../../Widget/BottomSheets/postJobsBottomSheet.dart';
@@ -19,6 +18,11 @@ class CompanyPostJobOfferScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _jobStateController.readJson();
+    });
+
     return GetBuilder<JobStateController>(
       builder: (controller) {
         return Scaffold(
@@ -322,17 +326,30 @@ class CompanyPostJobOfferScreen extends StatelessWidget {
                               )
                             ),
                             cursorColor: const Color(0xff041C40),
-                            validator: ValidationBuilder().build(),
+                            // validator: ValidationBuilder().build(),
                             onChanged: (value) {
                               controller.updateWebsite(value);
                             },
                           ),
                           const SizedBox(height: 20,),
+                          const SizedBox(height: 20,),
                           Row(
                             children: [
                               Expanded(
                                 flex: 1,
-                                child: TextFormField(
+                                child: DropdownButtonFormField<dynamic>(
+                                  isExpanded: true,
+                                  items: controller.countries.map((country) {
+                                    return DropdownMenuItem(
+                                      value: country["name"],
+                                      onTap: () {
+                                        controller.updateStates(country["states"]);
+                                      },
+                                      child: Text(
+                                        country["name"]
+                                      ),
+                                    );
+                                  }).toList(),
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Colors.white,
@@ -359,8 +376,6 @@ class CompanyPostJobOfferScreen extends StatelessWidget {
                                       color: Color(0xff041C40)
                                     )
                                   ),
-                                  cursorColor: const Color(0xff041C40),
-                                  validator: ValidationBuilder().build(),
                                   onChanged: (value) {
                                     controller.updateCountry(value);
                                   },
@@ -370,12 +385,13 @@ class CompanyPostJobOfferScreen extends StatelessWidget {
                               Expanded(
                                 flex: 1,
                                 child: DropdownButtonFormField<dynamic>(
-                                  key: const ValueKey('States'),
-                                  items: NigerianStatesAndLGA.allStates
-                                      .map<DropdownMenuItem<String>>((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
+                                  isExpanded: true,
+                                  items: controller.states.map((state) {
+                                    return DropdownMenuItem(
+                                      value: state["name"],
+                                      child: Text(
+                                        state["name"]
+                                      ),
                                     );
                                   }).toList(),
                                   decoration: InputDecoration(
@@ -408,7 +424,7 @@ class CompanyPostJobOfferScreen extends StatelessWidget {
                                     controller.updateState(value);
                                   },
                                 ),
-                              ),
+                              )
                             ],
                           ),
                         ],

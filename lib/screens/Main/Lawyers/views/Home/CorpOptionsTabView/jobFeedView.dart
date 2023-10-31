@@ -11,6 +11,12 @@ class CorpJobFeedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _lawyerStateController.getAllActiveJobs();
+    });
+
+
     return GetBuilder<LawyerStateController>(
       builder: (controller) {
         return Scaffold(
@@ -26,6 +32,13 @@ class CorpJobFeedView extends StatelessWidget {
                     child: Text(
                       "No jobs available"
                     ),
+                  )
+                  :
+                  (controller.isLoading)?
+                  const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xff041C40),
+                    )
                   )
                   :
                   SingleChildScrollView(
@@ -85,7 +98,7 @@ class CorpJobFeedView extends StatelessWidget {
                                             ),
                                             const SizedBox(height: 5,),
                                             Text(
-                                              controller.allActiveJobs[index]["position_type"],
+                                              controller.allActiveJobs[index]["job_title"],
                                               style: const TextStyle(
                                                 color: Color(0xff868686),
                                                 fontSize: 14

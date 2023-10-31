@@ -16,6 +16,8 @@ class JobDetailScreen extends StatelessWidget {
   final responsibilities = Get.arguments["responsibilities"];
   final website = Get.arguments["website"];
   final state = Get.arguments["state"];
+  final time = Get.arguments["time"];
+  final date = Get.arguments["date"];
   final InterviewStateController _interviewStateController = Get.find<InterviewStateController>();
 
   @override
@@ -164,8 +166,8 @@ class JobDetailScreen extends StatelessWidget {
                               const SizedBox(height: 10,),
                               Row(
                                 children: [
-                                  const Text(
-                                    "15th Mar, 2023",
+                                  Text(
+                                    date,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Color(0xff5E5E5E),
@@ -185,8 +187,8 @@ class JobDetailScreen extends StatelessWidget {
                                   const SizedBox(
                                     width: 10,
                                   ),
-                                  const Text(
-                                    "10:00 AM",
+                                  Text(
+                                    time,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Color(0xff5E5E5E),

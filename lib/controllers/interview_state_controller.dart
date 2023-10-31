@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudinary/cloudinary.dart';
@@ -22,7 +23,7 @@ class InterviewStateController extends GetxController {
   String _website = "";
   String _country = "";
   String _state = "";
-  String _imageUrl = "";
+  String _imageUrl = "https://www.seekpng.com/png/detail/46-462910_person-icon-black-avatar-png.png";
   String _feedbackText = "";
   String _referenceLetterText = "";
   bool _isLoading = false;
@@ -47,6 +48,10 @@ class InterviewStateController extends GetxController {
   TextEditingController _timeController = TextEditingController();
   String _dateOfInterview = "";
   TimeOfDay _timeOfDay = TimeOfDay(hour: 8, minute: 30);
+  List<dynamic> _feedbacks = [];
+  List<dynamic> _countries = [];
+  List<dynamic> _states = [];
+
 
   // getters
   String get name => _name;
@@ -71,6 +76,10 @@ class InterviewStateController extends GetxController {
   TextEditingController get timeController => _timeController;
   String get dateOfInterview => _dateOfInterview;
   TimeOfDay get timeOfDay => _timeOfDay;
+  List get feedbacks => _feedbacks;
+  List<dynamic> get countries => _countries;
+  List<dynamic> get states => _states;
+
 
   // SETTERS
   updateName(value){
@@ -150,12 +159,27 @@ class InterviewStateController extends GetxController {
     _dateOfInterview = value;
     update();
   }
-  updateTimeOfInterview(value, BuildContext context) {
-    _timeOfDay = value;
-    _timeController.text = _timeOfDay.format(context).toString();
+  updateFeedbacks(value) {
+    _feedbacks = value;
+    update();
+  }
+  updateCountries(value) {
+    _countries = value;
+    update();
+  }
+  updateStates(value) {
+    _states = value;
     update();
   }
 
+
+  // READ COUNTRY AND STATE DATA 
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('lib/countries.json');
+    final data = await json.decode(response);
+    updateCountries(data);
+  }
+  
   // Date Picker
   Future<void> showDateTimePicker (BuildContext context) async{
     var dateOfInterview = await showDatePicker(
@@ -167,12 +191,11 @@ class InterviewStateController extends GetxController {
       lastDate: DateTime(2023, 01, 01).add(const Duration(days: 365)),
     );
     if(dateOfInterview != null){
-      // DateFormat dateFormat = DateFormat("yyyy-MM-dd");
-      // String formattedDate = dateFormat.format(dob);
-      updateDateController(dateOfInterview.toString().split(" ").first);
+      DateFormat dateFormat = DateFormat("yyyy/MM/dd");
+      String formattedDate = dateFormat.format(dateOfInterview);
+      updateDateController(formattedDate);
       print(dateOfInterview);
       // updateDateOfInterview(formattedDate);
-
     }
 
     update();
@@ -183,7 +206,7 @@ class InterviewStateController extends GetxController {
         context: context,
         initialTime: TimeOfDay.now()
     ).then((value) {
-      updateTimeOfInterview(value, context);
+      _timeController.text = "${value!.hour}:${value.minute.toString().padLeft(2, "0")}";
     });
   }
 
@@ -282,8 +305,9 @@ class InterviewStateController extends GetxController {
       "country": _country,
       "state": _state,
       "image": _imageUrl,
-      "date": _dateController.text,
-      "recevier": _recevierAuth
+      "recevier": _recevierAuth,
+      "time":_timeController.text,
+      "day":_dateController.text
     };
     print(details);
 
@@ -296,6 +320,7 @@ class InterviewStateController extends GetxController {
       updateIsLoading(false);
 
       PopUps.showPopUps(context, "images/Message.png", "Invitation Sent", "Interview details has been sent to the applicant. You’ll be notified once they accept the invitation", "Continue", (){
+        Get.back();
         Get.back();
       });
 
@@ -359,6 +384,10 @@ class InterviewStateController extends GetxController {
 
       updateAllRecievedInterviews(responseData["data"]);
 
+      updateFeedbacks(
+        _allRecievedInterviews.where((feedback) => feedback["feedback_state"] == true).toList()
+      );
+
     } else {
       updateIsLoading(false);
 
@@ -395,6 +424,7 @@ class InterviewStateController extends GetxController {
 
       PopUps.showPopUps(context, "images/Pencil.png", "Feedback Sent!", "You’ve successfully sent a feedback to the applicant.", "Continue", (){
         Get.back();
+        Get.back();
       });
 
     } else {
@@ -430,8 +460,17 @@ class InterviewStateController extends GetxController {
     if(isSuccess){
       updateIsLoading(false);
 
+      (responseData["data"]["state"] == "Accepted")?
       PopUps.showPopUps(context, "images/breifSent.png", "Interview Invitation Accepted", "You’ve successfully accepted the interview. You’ll be notified a day before the interview.", "Continue", (){
         Get.back();
+        Get.back();
+        getAllRecievedInterviews();
+      })
+      :
+      PopUps.showPopUps(context, "images/breifSent.png", "Interview Invitation Rejected", "You’ve rejected the interview. ${responseData["data"]["name"]} will be notified", "Continue", (){
+        Get.back();
+        Get.back();
+        getAllRecievedInterviews();
       });
 
     } else {

@@ -85,7 +85,7 @@ class SearchScreen extends StatelessWidget {
                                             )
                                           ),
                                           onChanged: (value) {
-                                            controller.updateSelectedPracticeArea(value);
+                                            controller.updateKeyword(value);
                                             (value != "")?
                                             controller.searchForLawyers()
                                             :

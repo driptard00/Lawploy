@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudinary/cloudinary.dart';
@@ -8,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../Widget/PopUps/otpPopUp.dart';
+import '../models/myJobModel.dart';
 import '../services/JOBS/jobs_api_services.dart';
 
 class JobStateController extends GetxController {
@@ -19,7 +21,7 @@ class JobStateController extends GetxController {
   String _website = "";
   String _country = "";
   String _state = "";
-  String _imageUrl = "";
+  String _imageUrl = "https://www.seekpng.com/png/detail/46-462910_person-icon-black-avatar-png.png";
   bool _isLoading = false;
   final List<String> _positionTypes = [
     "Part-Time Role",
@@ -34,6 +36,11 @@ class JobStateController extends GetxController {
   );
   ImagePicker _imagePicker = ImagePicker();
   TextEditingController _positionTypeController = TextEditingController();
+  List<dynamic> _countries = [];
+  List<dynamic> _states = [];
+  List<dynamic> _myJobList = [];
+  List<dynamic> _applicants = [];
+  MyJob _myJob = MyJob();
 
 
   // GETTERS
@@ -49,7 +56,11 @@ class JobStateController extends GetxController {
   File? get selectedImage => _selectedImage;
   TextEditingController get positionTypeController => _positionTypeController;
   bool get isLoading => _isLoading;
-
+  List<dynamic> get countries => _countries;
+  List<dynamic> get states => _states;
+  List<dynamic> get myJobList => _myJobList;
+  List<dynamic> get applicants => _applicants;
+  MyJob get myJob => _myJob;
 
   // SETTERS
   updateName(value){
@@ -67,6 +78,10 @@ class JobStateController extends GetxController {
   updatePositionType(value){
     _position_type = value;
     _positionTypeController.text = _position_type;
+    (_positionTypeController.text != "") ?
+    Get.back()
+    :
+    null;
     update();
   }
   updateResponsibilities(value){
@@ -97,7 +112,30 @@ class JobStateController extends GetxController {
     _selectedImage = value;
     update();
   }
+  updateCountries(value) {
+    _countries = value;
+    update();
+  }
+  updateStates(value) {
+    _states = value;
+    update();
+  }
+  updateMyJobList(value) {
+    _myJobList = value;
+    update();
+  }
+  updateApplicants(value) {
+    _applicants = value;
+    update();
+  }
 
+  // READ COUNTRY AND STATE DATA 
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('lib/countries.json');
+    final data = await json.decode(response);
+    updateCountries(data);
+  }
+  
   // GET JOB IMAGE
   Future<void> getJobImage(ImageSource imageSource) async {
     try {
@@ -177,7 +215,109 @@ class JobStateController extends GetxController {
 
       PopUps.showPopUps(context, "images/breifSent.png", "Job Post Created", "You’ve successfully created a job post.", "Close", (){
         Get.back();
+        Get.back();
       });
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+    update();
+  }
+
+  //  GET single my jobs
+  Future<void> getSingleJob(String id) async{
+    updateIsLoading(true);
+
+    var response = await JobsApiServices.getSingleJobService(id);
+    var responseData = response!.data;
+    print(responseData);
+    
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      _myJob = MyJob.fromMap(responseData["data"]);
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+    update();
+  }
+ 
+  //  deleteJob
+  Future<void> deleteMyJob(String id) async{
+    updateIsLoading(true);
+
+    var response = await JobsApiServices.deleteJobService(id);
+    var responseData = response!.data;
+    print(responseData);
+    
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      Get.back();
+      getMyJobs();
+      
+      Fluttertoast.showToast(
+        msg: "Job Deleted Successfully!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+    update();
+  }
+
+    //  GET my jobs
+  Future<void> getMyJobs() async{
+    updateIsLoading(true);
+
+    var response = await JobsApiServices.getMyJobsService();
+    var responseData = response!.data;
+    print(responseData);
+    
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      updateMyJobList(responseData["data"]);
 
     } else {
       updateIsLoading(false);

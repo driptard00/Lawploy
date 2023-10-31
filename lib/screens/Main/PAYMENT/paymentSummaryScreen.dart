@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 
+import '../../../Widget/BottomSheets/payforbriefBottomSheet.dart';
 import '../../../controllers/paymentStateController.dart';
 
 class PaymentSummaryScreen extends StatelessWidget {
   PaymentSummaryScreen({super.key});
 
   final PaymentStateController _paymentStateController = Get.put(PaymentStateController());
+  final name = Get.arguments["name"];
+  final phone = Get.arguments["phone"];
+  final email = Get.arguments["email"];
   final amount = Get.arguments["amount"];
-  final userID = Get.arguments["userID"];
-  final userAuth = Get.arguments["userAuth"];
+  final auth = Get.arguments["auth"];
+  final auth2 = Get.arguments["auth2"];
+
+  var format = NumberFormat('#,##0');
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +61,7 @@ class PaymentSummaryScreen extends StatelessWidget {
                           height: 30,
                         ),
                         Text(
-                          "NGN$amount",
+                          "NGN${format.format(amount)}",
                           style: const TextStyle(
                               color: Color(0xff0E0E0E),
                               fontSize: 24,
@@ -79,7 +87,7 @@ class PaymentSummaryScreen extends StatelessWidget {
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Text(
-                                  "NGN$amount",
+                                  "NGN${format.format(amount)}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     // fontFamily: "CircularStdBold",
@@ -95,10 +103,10 @@ class PaymentSummaryScreen extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            Expanded(
+                            const Expanded(
                               child: Text(
-                                "Transaction Fee:",
-                                style: const TextStyle(
+                                "Commission Fee:",
+                                style:  TextStyle(
                                   color: Color(0xff5E5E5E),
                                   fontSize: 14,
                                 ),
@@ -108,7 +116,7 @@ class PaymentSummaryScreen extends StatelessWidget {
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Text(
-                                  "NGN10000",
+                                  "NGN${format.format(controller.updateCommissinFee(amount))}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     // fontFamily: "CircularStdBold",
@@ -122,7 +130,7 @@ class PaymentSummaryScreen extends StatelessWidget {
                         const SizedBox(
                           height: 20,
                         ),
-                        Divider(
+                        const Divider(
                           color: Color(0xffCFCFCF),
                         ),
                         const SizedBox(
@@ -130,10 +138,10 @@ class PaymentSummaryScreen extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            Expanded(
+                            const Expanded(
                               child: Text(
                                 "Total Fee:",
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Color(0xff5E5E5E),
                                   fontSize: 14,
                                 ),
@@ -143,7 +151,7 @@ class PaymentSummaryScreen extends StatelessWidget {
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Text(
-                                  "NGN10000",
+                                  "NGN${format.format(controller.totalFee(amount, controller.updateCommissinFee(amount)))}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     // fontFamily: "CircularStdBold",
@@ -165,23 +173,23 @@ class PaymentSummaryScreen extends StatelessWidget {
                               color: const Color(0xffF6EDD1),
                               borderRadius: BorderRadius.circular(10)
                           ),
-                          child: Column(
+                          child: const Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 "PLEASE NOTE",
-                                style: const TextStyle(
+                                style:  TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xff363636),
                                   fontSize: 14,
                                 ),
                               ),
-                              const SizedBox(
+                               SizedBox(
                                 height: 10,
                               ),
                               Text(
                                 "You’ll be charged 10% commission fee on payment fee",
-                                style: const TextStyle(
+                                style:  TextStyle(
                                   color: Color(0xff5E5E5E),
                                   fontSize: 14,
                                 ),
@@ -204,13 +212,28 @@ class PaymentSummaryScreen extends StatelessWidget {
                             width: Get.width,
                             child: TextButton(
                               onPressed: () {
-                                // Get.toNamed(inviteForInterviewScreen);
+                                controller.paymentInit(
+                                  context, 
+                                  name,
+                                  phone,
+                                  email,
+                                  controller.totalFee(amount, controller.updateCommissinFee(amount)),
+                                  auth,
+                                  auth2
+                                );
                               },
                               style: TextButton.styleFrom(
                                   backgroundColor: const Color(0xff041C40),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
                               ),
-                              child: const Text(
+                              child: (controller.isLoading)?
+                                const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                )
+                                :
+                               Text(
                                 "Pay Now",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(

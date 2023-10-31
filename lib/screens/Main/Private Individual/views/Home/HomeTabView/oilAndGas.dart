@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 
 import '../../../../../../controllers/appStateController.dart';
 import '../../../../../../controllers/privateStateController.dart';
@@ -70,13 +71,28 @@ class PIOAGViews extends StatelessWidget {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 30,
-                                    backgroundImage: (controller.oagLawyersList[index]["profile_image"] == null)?
-                                    const AssetImage("images/profileAvatar.png") as ImageProvider
-                                    :
-                                    NetworkImage(controller.oagLawyersList[index]["profile_image"]),
-                                  ),
+                                            Stack(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: (controller.oagLawyersList[index]["profile_image"] == null)?
+                                                  const AssetImage("images/profileAvatar.png") as ImageProvider
+                                                  :
+                                                  NetworkImage(controller.oagLawyersList[index]["profile_image"]),
+                                                ),
+                                                controller.oagLawyersList[index]["verify"]?
+                                                const Positioned(
+                                                  right: 0,
+                                                  bottom: 0,
+                                                  child: Icon(
+                                                    Iconsax.verify5,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                                :
+                                                SizedBox()
+                                              ],
+                                            ),
                                   const SizedBox(height: 10,),
                                   Text(
                                     "${controller.oagLawyersList[index]["first_name"]} ${controller.oagLawyersList[index]["last_name"]}",
@@ -88,7 +104,7 @@ class PIOAGViews extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 5,),
                                   Text(
-                                    "${controller.lawyersList[index]["state"]}, ${controller.lawyersList[index]["LGA"]}}",
+                                    "${controller.oagLawyersList[index]["state"]}, ${controller.oagLawyersList[index]["LGA"]}",
                                     maxLines: 1,
                                     textAlign: TextAlign.center,
                                     overflow: TextOverflow.ellipsis,

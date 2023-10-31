@@ -7,9 +7,9 @@ import 'package:iconsax/iconsax.dart';
 import 'package:lawploy_app/Widget/PopUps/otpPopUp.dart';
 import 'package:lawploy_app/Widget/TextHeaders/textHeaders.dart';
 import 'package:lawploy_app/controllers/authStateController.dart';
-import 'package:lawploy_app/controllers/lawFirmStateController.dart';
 
 import '../../../../../Widget/Buttons/normalButtons.dart';
+import '../../../../../controllers/lawfirmStateController.dart';
 
 
 class LawFirmUpdatePassword extends StatelessWidget {

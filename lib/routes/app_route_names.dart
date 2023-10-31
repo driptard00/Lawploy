@@ -95,6 +95,8 @@ String myBriefsScreen = "/myBriefsScreen";
 
 String jobScreen = "/jobScreen";
 
+String coverLetterScreen = "/coverLetterScreen";
+
 // ======== LAWYER MAIN SCREENS ==========
 String lawyerHolderScreen = "/lawyerHolderScreen";
 String editProfileScreen = "/editProfileScreen";
@@ -106,6 +108,9 @@ String interviewFeedbackScreen = "/interviewFeedbackScreen";
 String seeAllLawyersScreen = "/seeAllLawyersScreen";
 String lawyerUpdatePasswordScreen = "/lawyerUpdatePasswordScreen";
 String lawyerBriefDescriptionScreen = "/lawyerBriefDescriptionScreen";
+String lawyerInterviewScreen = "/lawyerInterviewScreen";
+String lawyerSendInterviewInvite = "/lawyerSendInterviewInvite";
+String inputFeedbackScreen = "/inputFeedbackScreen";
 
 // ======== LAWFIRMS MAIN SCREENS ==========
 String lawFirmHolderScreen = "/lawFirmHolderScreen";
@@ -119,6 +124,8 @@ String lfProfileHoldBriefScreen = "/lfProfileHoldBriefScreen";
 String firmSeeAllLawyersScreen = "/firmSeeAllLawyersScreen";
 String firmUpdatePasswordScreen = "/firmUpdatePasswordScreen";
 String firmBriefDescriptionScreen = "/firmBriefDescriptionScreen";
+String firmInterviewScreen = "/firmInterviewScreen";
+String firmSendInterviewInvite = "/lawyerSendInterviewInvite";
 
 // ======== COMPANY MAIN SCREENS ==========
 String companyHolderScreen = "/companyHolderScreen";
@@ -164,3 +171,6 @@ String createNewAccountTypePrivate = "/createNewAccountTypePrivate";
 // LAWYER
 String personalDetailsLawyer = "/personalDetailsLawyer";
 String workDetailsLawyer = "/workDetailsLawyer";
+
+// PDF VIEWER
+String pdfviewer = "/pdfViewer";

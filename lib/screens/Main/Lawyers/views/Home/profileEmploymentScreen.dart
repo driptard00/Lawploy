@@ -242,7 +242,7 @@ class ProfileEmploymentScreen extends StatelessWidget {
                                         alignment: Alignment.centerRight,
                                         child: InkWell(
                                           onTap: () {
-                                            _chatController.createConversation(controller.otherLawyer.auth!, controller.otherLawyer.firstName, controller.otherLawyer.lastName, controller.otherLawyer.profileImage);
+                                            _chatController.createConversation(controller.otherLawyer.auth!, controller.otherLawyer.firstName, controller.otherLawyer.lastName, controller.otherLawyer.profileImage, controller.otherLawyer.auth!);
                                           },
                                           child: Container(
                                             height: 41,

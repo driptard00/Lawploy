@@ -7,7 +7,6 @@ import 'package:form_validator/form_validator.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lawploy_app/Widget/Buttons/normalButtons.dart';
-import 'package:nigerian_states_and_lga/nigerian_states_and_lga.dart';
 
 import '../../../../../Widget/BottomSheets/LawyerUploadProfilePicture.dart';
 import '../../../../../Widget/BottomSheets/practiceArea.dart';
@@ -18,10 +17,14 @@ class EditProfileScreen extends StatelessWidget {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   // final AppStateController _appStateController = Get.put(AppStateController());
-  // final LawyerStateController _lawyerStateController = Get.find<LawyerStateController>();
+  final LawyerStateController _lawyerStateController = Get.find<LawyerStateController>();
 
   @override
   Widget build(BuildContext context) {
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _lawyerStateController.readJson();
+    });
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xffF9F9F9),
@@ -541,8 +544,20 @@ class EditProfileScreen extends StatelessWidget {
                               },
                             ),
                             const SizedBox(height: 20,),
-                            TextFormField(
-                              controller: controller.countryController,
+                            DropdownButtonFormField<dynamic>(
+                              isExpanded: true,
+                              // value: controller.countryController.text,
+                              items: controller.countries.map((country) {
+                                return DropdownMenuItem(
+                                  value: country["name"],
+                                  onTap: () {
+                                    controller.updateStates(country["states"]);
+                                  },
+                                  child: Text(
+                                    country["name"]
+                                  ),
+                                );
+                              }).toList(),
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.white,
@@ -579,15 +594,16 @@ class EditProfileScreen extends StatelessWidget {
                                 Expanded(
                                   flex: 1,
                                   child: DropdownButtonFormField<dynamic>(
-                                    key: const ValueKey('States'),
-                                    items: NigerianStatesAndLGA.allStates
-                                        .map<DropdownMenuItem<String>>((String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(value),
+                                    isExpanded: true,
+                                    // value: controller.stateController.text,
+                                    items: controller.states.map((state) {
+                                      return DropdownMenuItem(
+                                        value: state["name"],
+                                        child: Text(
+                                          state["name"]
+                                        ),
                                       );
                                     }).toList(),
-                                    value: controller.stateController.text,
                                     decoration: InputDecoration(
                                       filled: true,
                                       fillColor: Colors.white,
@@ -622,16 +638,8 @@ class EditProfileScreen extends StatelessWidget {
                                 const SizedBox(width: 15,),
                                 Expanded(
                                   flex: 1,
-                                  child: DropdownButtonFormField<dynamic>(
-                                    isExpanded: true,
-                                    value: controller.lgaController.text,
-                                    items: NigerianStatesAndLGA.getAllNigerianLGAs()
-                                        .map<DropdownMenuItem<String>>((String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(value),
-                                      );
-                                    }).toList(),
+                                  child: TextFormField(
+                                    controller: controller.lgaController,
                                     decoration: InputDecoration(
                                       filled: true,
                                       fillColor: Colors.white,
@@ -652,25 +660,28 @@ class EditProfileScreen extends StatelessWidget {
                                       labelText: "LGA",
                                       labelStyle: const TextStyle(
                                         color: Color(0xffAFAFAF),
-                                        fontSize: 16
+                                        fontSize: 16,
+                                        fontFamily: "CabinetMedium"
                                       ),
                                       floatingLabelStyle: const TextStyle(
                                         color: Color(0xff041C40)
                                       )
                                     ),
+                                    cursorColor: const Color(0xff041C40),
+                                    validator: ValidationBuilder().build(),
                                     onChanged: (value) {
                                       controller.updateLGA(value);
                                     },
                                   ),
                                 ),
                               ],
-                            )
+                            ),
                               ],
                             ),
                           )
                         ],
                       ),
-                                      ),
+                      ),
                         ],
                       ),
                     ),

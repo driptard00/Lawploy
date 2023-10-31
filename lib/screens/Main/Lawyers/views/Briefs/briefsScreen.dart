@@ -100,6 +100,7 @@ class BriefScreen extends StatelessWidget {
                       }
 
                       final formattedTime = DateFormat('h:mma').format(dateTime).toLowerCase();
+                      
                       return Container(
                         decoration: BoxDecoration(
                             color: Colors.white,
@@ -109,44 +110,45 @@ class BriefScreen extends StatelessWidget {
                           child: ListTile(
                             onTap: (){
                               Get.toNamed(
-                                  lawyerBriefDescriptionScreen,
-                                  arguments: {
-                                    "date": formattedDate,
-                                    "time": formattedTime,
-                                    "image": (
-                                        controller.myBriefsList[index]["_creator"]["corporationID"] != null ?
-                                        controller.myBriefsList[index]["_creator"]["corporationID"]["profile_image"] == null
-                                            :
-                                        controller.myBriefsList[index]["_creator"]["lawyerID"] != null ?
-                                        controller.myBriefsList[index]["_creator"]["lawyerID"]["profile_image"] == null
-                                            :
-                                        controller.myBriefsList[index]["_creator"]["firmID"] != null ?
-                                        controller.myBriefsList[index]["_creator"]["firmID"]["profile_image"] == null
-                                            :
-                                        controller.myBriefsList[index]["_creator"]["privateID"]["profile_image"] == null
-                                    )?
-                                    null
-                                        :
-                                    (controller.myBriefsList[index]["_creator"]["corporationID"] != null)?
-                                    controller.myBriefsList[index]["_creator"]["corporationID"]["profile_image"]
-                                        :
-                                    (controller.myBriefsList[index]["_creator"]["firmID"] != null)?
-                                    controller.myBriefsList[index]["_creator"]["firmID"]["profile_image"]
-                                        :
-                                    (controller.myBriefsList[index]["_creator"]["lawyerID"] != null)?
-                                    controller.myBriefsList[index]["_creator"]["lawyerID"]["profile_image"]
-                                        :
-                                    (controller.myBriefsList[index]["_creator"]["privateID"] != null)?
-                                    controller.myBriefsList[index]["_creator"]["privateID"]["profile_image"]
-                                        :
-                                    null,
-                                    "name": (controller.myBriefsList[index]["_creator"]["lawyerID"] != null)?
-                                    controller.myBriefsList[index]["_creator"]["lawyerID"]["first_name"]:
-                                    controller.myBriefsList[index]["_creator"]["firmID"]["name"],
-                                    "description": controller.myBriefsList[index]["brief"],
-                                    "url": controller.myBriefsList[index]["_path"],
-                                    "fileName": controller.myBriefsList[index]["name"],
-                                  }
+                                lawyerBriefDescriptionScreen,
+                                arguments: {
+                                  "date": formattedDate,
+                                  "time": formattedTime,
+                                  "image": (
+                                      controller.myBriefsList[index]["_creator"]["corporationID"] != null ?
+                                      controller.myBriefsList[index]["_creator"]["corporationID"]["profile_image"] == null
+                                          :
+                                      controller.myBriefsList[index]["_creator"]["lawyerID"] != null ?
+                                      controller.myBriefsList[index]["_creator"]["lawyerID"]["profile_image"] == null
+                                          :
+                                      controller.myBriefsList[index]["_creator"]["firmID"] != null ?
+                                      controller.myBriefsList[index]["_creator"]["firmID"]["profile_image"] == null
+                                          :
+                                      controller.myBriefsList[index]["_creator"]["privateID"]["profile_image"] == null
+                                  )?
+                                  null
+                                      :
+                                  (controller.myBriefsList[index]["_creator"]["corporationID"] != null)?
+                                  controller.myBriefsList[index]["_creator"]["corporationID"]["profile_image"]
+                                      :
+                                  (controller.myBriefsList[index]["_creator"]["firmID"] != null)?
+                                  controller.myBriefsList[index]["_creator"]["firmID"]["profile_image"]
+                                      :
+                                  (controller.myBriefsList[index]["_creator"]["lawyerID"] != null)?
+                                  controller.myBriefsList[index]["_creator"]["lawyerID"]["profile_image"]
+                                      :
+                                  (controller.myBriefsList[index]["_creator"]["privateID"] != null)?
+                                  controller.myBriefsList[index]["_creator"]["privateID"]["profile_image"]
+                                      :
+                                  null,
+                                  "name": (controller.myBriefsList[index]["_creator"]["lawyerID"] != null)?
+                                  controller.myBriefsList[index]["_creator"]["lawyerID"]["first_name"]:
+                                  controller.myBriefsList[index]["_creator"]["firmID"]["name"],
+                                  "description": controller.myBriefsList[index]["brief"],
+                                  "url": controller.myBriefsList[index]["_path"],
+                                  "fileName": controller.myBriefsList[index]["name"],
+                                  "ID": controller.myBriefsList[index]["_creator"]["_id"]
+                                }
                               );
                             },
                             leading: CircleAvatar(

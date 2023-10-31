@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../../../../controllers/chat_controller.dart';
 import '../../../../../controllers/interview_state_controller.dart';
 import 'interviewScreenTabs/interviewView.dart';
 import 'interviewScreenTabs/jobApplicationView.dart';
@@ -10,7 +11,7 @@ class CompanyInterviewScreen extends StatelessWidget {
    CompanyInterviewScreen({super.key});
 
   final InterviewStateController _interviewStateController = Get.put(InterviewStateController());
-
+  final ChatController _chatController = Get.put(ChatController());
 
   @override
   Widget build(BuildContext context) {
@@ -66,10 +67,10 @@ class CompanyInterviewScreen extends StatelessWidget {
                   labelColor: const Color(0xff03132B),
                   tabs: const [
                     Tab(
-                      text: "Interviews",
+                      text: "Job Application",
                     ),
                     Tab(
-                      text: "Job Application",
+                      text: "Interviews",
                     ),
                   ],
                 ),
@@ -78,8 +79,8 @@ class CompanyInterviewScreen extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   children: [
+                    JobApplicationView(),
                     InterviewsView(),
-                    JobApplicationView()
                   ],
                 )
               )

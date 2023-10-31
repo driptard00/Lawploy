@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:lawploy_app/controllers/appStateController.dart';
 import 'package:lawploy_app/controllers/authStateController.dart';
+import 'package:lawploy_app/controllers/notification_state_controller.dart';
 import 'package:lawploy_app/controllers/privateStateController.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 import 'package:lawploy_app/screens/Main/Private%20Individual/views/Home/HomeTabView/allTabViews.dart';
@@ -17,10 +19,12 @@ class PIHomeScreen extends StatelessWidget {
 
   final AuthStateController _authStateController =
       Get.put(AuthStateController());
+  final PrivateStateController _privateStateController = Get.put(PrivateStateController());
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<PrivateStateController>(builder: (controller) {
+
+    return GetBuilder<AppStateController>(builder: (controller) {
       return DefaultTabController(
         length: _authStateController.practiceAreas.length + 1,
         child: Scaffold(
@@ -76,10 +80,25 @@ class PIHomeScreen extends StatelessWidget {
                                               onTap: (){
                                                 Get.toNamed(companyinterviewScreen);
                                               },
-                                              child: Icon(
-                                                Iconsax.maximize_2,
-                                                color: Colors.white,
-                                                size: 24,
+                                              child: Badge(
+                                                isLabelVisible: (controller.sent.isNotEmpty || controller.applicants.isNotEmpty)?
+                                                true
+                                                :
+                                                false,
+                                                label: Text(
+                                                  ((controller.sent.length + controller.applicants.length) > 9)?
+                                                  "9+"
+                                                  :
+                                                  "${controller.sent.length + controller.applicants.length}",
+                                                  style: const TextStyle(
+                                                    color: Colors.white
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Iconsax.maximize_2,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -91,24 +110,39 @@ class PIHomeScreen extends StatelessWidget {
                                                 Get.toNamed(
                                                     notificationScreen,
                                                     arguments: {
-                                                      "type": controller.privateIndividual.type
+                                                      "type": _privateStateController.privateIndividual.type
                                                     }
                                                 );
                                               },
-                                              child: const Icon(
-                                                Iconsax.notification,
-                                                color: Colors.white,
-                                                size: 24,
+                                              child: Badge(
+                                                isLabelVisible: (controller.ureadList.isNotEmpty)?
+                                                true
+                                                :
+                                                false,
+                                                label: Text(
+                                                  (controller.ureadList.length > 9)?
+                                                  "9+"
+                                                  :
+                                                  controller.ureadList.length.toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Iconsax.notification,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
                                               ),
                                             ),
-                                          ),
+                                          )
                                         ],
                                       ),
                                     )
                                   ],
                                 ),
                                 TextFormField(
-                                                                      onTap: () {
+                                    onTap: () {
                                       FocusScope.of(context).requestFocus(FocusNode());
                                       Get.toNamed(searchScreen);
                                     },

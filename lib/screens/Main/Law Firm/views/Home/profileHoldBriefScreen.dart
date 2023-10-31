@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:lawploy_app/Widget/BottomSheets/payforbriefBottomSheet.dart';
+import 'package:lawploy_app/Widget/BottomSheets/payforbriefBottomSheetFirm.dart';
+import 'package:lawploy_app/controllers/chat_controller.dart';
 import 'package:lawploy_app/controllers/lawfirmStateController.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 
@@ -13,6 +16,8 @@ class LFProfileHoldBriefScreen extends StatelessWidget {
 
   final userId = Get.arguments["userId"];
   final LawFirmStateController _lawFirmStateController = Get.find<LawFirmStateController>();
+  final ChatController _chatController = Get.put(ChatController());
+
   var format = NumberFormat("#,##0");
 
   @override
@@ -236,38 +241,44 @@ class LFProfileHoldBriefScreen extends StatelessWidget {
                                     child: Center(
                                       child: Align(
                                         alignment: Alignment.centerRight,
-                                        child: Container(
-                                          height: 41,
-                                          width: 84,
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.circular(25),
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                    blurRadius: 5,
-                                                    offset: Offset(1, 1),
-                                                    color: Color.fromARGB(1, 0, 0, 0)
+                                        child: InkWell(
+                                          onTap: () {
+                                            _chatController.createConversation(controller.otherLawyer.auth!, controller.otherLawyer.firstName, controller.otherLawyer.lastName, controller.otherLawyer.profileImage, controller.otherLawyer.auth!);
+                                            
+                                          },
+                                          child: Container(
+                                            height: 41,
+                                            width: 84,
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(25),
+                                                boxShadow: const [
+                                                  BoxShadow(
+                                                      blurRadius: 5,
+                                                      offset: Offset(1, 1),
+                                                      color: Color.fromARGB(1, 0, 0, 0)
+                                                  ),
+                                                ]
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: const [
+                                                Icon(
+                                                  Iconsax.messages5,
+                                                  size: 20,
+                                                  color: Color(0xffD3A518),
                                                 ),
-                                              ]
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: const [
-                                              Icon(
-                                                Iconsax.messages5,
-                                                size: 20,
-                                                color: Color(0xffD3A518),
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Text(
-                                                "Chat",
-                                                style: TextStyle(
-                                                    color: Color(0xff0E0E0E),
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w700
+                                                SizedBox(width: 5,),
+                                                Text(
+                                                  "Chat",
+                                                  style: TextStyle(
+                                                      color: Color(0xff0E0E0E),
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w700
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -377,20 +388,12 @@ class LFProfileHoldBriefScreen extends StatelessWidget {
                           height: 50,
                           width: Get.width,
                           child: TextButton(
-                            onPressed: () {
-                              FlutterWaveService().handlePaymentInitialization(
-                                  context,
-                                  "${controller.otherLawyer.firstName} ${controller.otherLawyer.lastName}",
-                                  controller.otherLawyer.phoneNumber,
-                                  controller.otherLawyer.email,
-                                  controller.otherLawyer.briefMinAmount.toString(),
-                                  {
-                                    "senderId": controller.lawFirm,
-                                    "recieverId": controller.otherLawyer.auth,
-                                    "reason": "For payment",
-                                    "type": "brief"
-                                  }
-                              );
+                           onPressed: () {
+                              TextEditingController _amountController = TextEditingController();
+                              _amountController.text = controller.otherLawyer.briefMinAmount!.toString();
+
+                              FirmPayForBriefBottomSheet.showFirmPayForBriefBottomSheet(controller.otherLawyer, controller.lawFirm, _amountController ,context);
+
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white.withOpacity(0),
@@ -402,7 +405,7 @@ class LFProfileHoldBriefScreen extends StatelessWidget {
                             child: Text(
                               "Continue N${format.format(controller.otherLawyer.briefMinAmount!)}",
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Color(0xff041C40),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700

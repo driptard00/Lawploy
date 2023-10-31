@@ -114,3 +114,7 @@ String acceptInterviewInvite = "/interview/received/";
 String getAllAccountsRoute = "/auth/accounts";
 String createNewAccountTypeRoute = "/auth/account";
 String switchAccountRoute = "/auth/account";
+
+// =========== PAYMENT ============
+String paymentInitRoute = "/payment/init";
+String getAllPaymentRoute = "/payment";

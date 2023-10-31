@@ -118,13 +118,17 @@ class SharedBriefScreen extends StatelessWidget {
                                 arguments: {
                                   "date": formattedDate,
                                   "time": formattedTime,
-                                  "image": controller.myBriefsList[index]["_creator"]["lawyerID"]["profile_image"],
-                                  "name": (controller.myBriefsList[index]["_creator"]["lawyerID"] != null)?
-                                  controller.myBriefsList[index]["_creator"]["lawyerID"]["first_name"]:
-                                  controller.myBriefsList[index]["_creator"]["firmID"]["name"],
-                                  "description": controller.myBriefsList[index]["brief"],
-                                  "url": controller.myBriefsList[index]["_path"],
-                                  "fileName": controller.myBriefsList[index]["name"],
+                                  "image": (controller.sharedBriefsList[index]["_receiver"]["lawyerID"]["profile_image"] == null)?
+                                      null
+                                      :
+                                      controller.sharedBriefsList[index]["_receiver"]["lawyerID"]["profile_image"],
+                                  "name": (controller.sharedBriefsList[index]["_receiver"]["lawyerID"] != null)?
+                                  controller.sharedBriefsList[index]["_receiver"]["lawyerID"]["first_name"]:
+                                  controller.sharedBriefsList[index]["_receiver"]["firmID"]["name"],
+                                  "description": controller.sharedBriefsList[index]["brief"],
+                                  "url": controller.sharedBriefsList[index]["_path"],
+                                  "fileName": controller.sharedBriefsList[index]["name"],
+                                  "ID": controller.sharedBriefsList[index]["_creator"]
                                 }
                               );
                             },

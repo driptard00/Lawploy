@@ -184,74 +184,74 @@ class PrivateSettingScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20,),
-                        const Text(
-                          "Privacy",
-                          style: TextStyle(
-                            color: Color(0xff03132B),
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Flexible(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15)
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 5),
-                            child: _listTileSwitch(
-                              Container(
-                                height: 37,
-                                width: 37,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xffF6EDD1),
-                                  borderRadius: BorderRadius.circular(37)
-                                ),
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Color(0xffD3A518),
-                                  size: 20,
-                                ),
-                              ), 
-                              "Keep your profile private", 
-                              CupertinoSwitch(
-                                value: false,
-                                onChanged: (value) {
+                        // const SizedBox(height: 20,),
+                        // const Text(
+                        //   "Privacy",
+                        //   style: TextStyle(
+                        //     color: Color(0xff03132B),
+                        //     fontSize: 16,
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 10,
+                        // ),
+                        // Flexible(
+                        //   child: Container(
+                        //     decoration: BoxDecoration(
+                        //       color: Colors.white,
+                        //       borderRadius: BorderRadius.circular(15)
+                        //     ),
+                        //     padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 5),
+                        //     child: _listTileSwitch(
+                        //       Container(
+                        //         height: 37,
+                        //         width: 37,
+                        //         decoration: BoxDecoration(
+                        //           color: const Color(0xffF6EDD1),
+                        //           borderRadius: BorderRadius.circular(37)
+                        //         ),
+                        //         child: const Icon(
+                        //           Icons.person,
+                        //           color: Color(0xffD3A518),
+                        //           size: 20,
+                        //         ),
+                        //       ), 
+                        //       "Keep your profile private", 
+                        //       CupertinoSwitch(
+                        //         value: controller.privateIndividual.pr,
+                        //         onChanged: (value) {
                                   
-                                },
-                              )
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Expanded(
-                              flex: 1,
-                              child: Icon(
-                                Iconsax.info_circle,
-                                size: 20,
-                                color: Color(0xff363636),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 9,
-                              child: Text(
-                                "If turned on, your profile will be hidden from companies and lawyers for possible employment.",
-                                style: TextStyle(
-                                  color: Color(0xff363636),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
+                        //         },
+                        //       )
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 10,
+                        // ),
+                        // Row(
+                        //   crossAxisAlignment: CrossAxisAlignment.start,
+                        //   children: const [
+                        //     Expanded(
+                        //       flex: 1,
+                        //       child: Icon(
+                        //         Iconsax.info_circle,
+                        //         size: 20,
+                        //         color: Color(0xff363636),
+                        //       ),
+                        //     ),
+                        //     Expanded(
+                        //       flex: 9,
+                        //       child: Text(
+                        //         "If turned on, your profile will be hidden from companies and lawyers for possible employment.",
+                        //         style: TextStyle(
+                        //           color: Color(0xff363636),
+                        //           fontSize: 14,
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // )
                       ],
                     ),
                   )

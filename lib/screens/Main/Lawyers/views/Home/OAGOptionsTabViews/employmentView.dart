@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 
 import '../../../../../../controllers/lawyerStateController.dart';
 import '../../../../../../routes/app_route_names.dart';
@@ -71,13 +72,28 @@ class OAGEmploymentView extends StatelessWidget {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 30,
-                                    backgroundImage: (controller.oagLawyersList[index]["profile_image"] == null)?
-                                    const AssetImage("images/profileAvatar.png") as ImageProvider
-                                    :
-                                    NetworkImage(controller.oagLawyersList[index]["profile_image"]),
-                                  ),
+                                            Stack(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: (controller.oagLawyersList[index]["profile_image"] == null)?
+                                                  const AssetImage("images/profileAvatar.png") as ImageProvider
+                                                  :
+                                                  NetworkImage(controller.oagLawyersList[index]["profile_image"]),
+                                                ),
+                                                controller.oagLawyersList[index]["verify"]?
+                                                const Positioned(
+                                                  right: 0,
+                                                  bottom: 0,
+                                                  child: Icon(
+                                                    Iconsax.verify5,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                                :
+                                                SizedBox()
+                                              ],
+                                            ),
                                   const SizedBox(height: 10,),
                                   Text(
                                     "${controller.oagLawyersList[index]["first_name"]} ${controller.oagLawyersList[index]["last_name"]}",
@@ -89,7 +105,7 @@ class OAGEmploymentView extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 5,),
                                   Text(
-                                    "${controller.lawyersList[index]["state"]}, ${controller.lawyersList[index]["country"]}",
+                                    "${controller.oagLawyersList[index]["state"]}, ${controller.oagLawyersList[index]["country"]}",
                                     maxLines: 1,
                                     textAlign: TextAlign.center,
                                     overflow: TextOverflow.ellipsis,
@@ -112,12 +128,12 @@ class OAGEmploymentView extends StatelessWidget {
                                     width: 130,
                                     child: TextButton(
                                       onPressed: () {
-                        Get.toNamed(
-                          profileEmploymentScreen,
-                          arguments: {
-                            "lawyerID": controller.oagLawyersList[index]["_id"]
-                          }
-                        );
+                                        Get.toNamed(
+                                          profileEmploymentScreen,
+                                          arguments: {
+                                            "lawyerID": controller.oagLawyersList[index]["_id"]
+                                          }
+                                        );
                                       },
                                       style: TextButton.styleFrom(
                                         side: const BorderSide(

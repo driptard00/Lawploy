@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:lawploy_app/controllers/appStateController.dart';
 import 'package:lawploy_app/controllers/authStateController.dart';
+import 'package:lawploy_app/controllers/notification_state_controller.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/views/Home/HomeTabView/allTabViews.dart';
 import 'package:lawploy_app/screens/Main/Law%20Firm/views/Home/HomeTabView/ardTabView.dart';
@@ -16,14 +18,15 @@ import '../../../../../controllers/lawfirmStateController.dart';
 class LFHomeScreen extends StatelessWidget {
   LFHomeScreen({super.key});
 
-  final AuthStateController _authStateController =
-      Get.put(AuthStateController());
+  final NotificationStateController _notificationStateController = Get.put(NotificationStateController());
+  final LawFirmStateController _lawFirmStateController = Get.put(LawFirmStateController());
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<LawFirmStateController>(builder: (controller) {
+
+    return GetBuilder<AppStateController>(builder: (controller) {
       return DefaultTabController(
-        length: _authStateController.practiceAreas.length + 1,
+        length: 6,
         child: Scaffold(
           body: Container(
             height: Get.height,
@@ -49,7 +52,7 @@ class LFHomeScreen extends StatelessWidget {
                               "images/eclipse1.png",
                             ),
                           ),
-                          Padding(
+                         Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 15),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -57,37 +60,89 @@ class LFHomeScreen extends StatelessWidget {
                                 Row(
                                   children: [
                                     const Expanded(
-                                      flex: 9,
+                                      flex: 8,
                                       child: Text(
                                         "Find the Best Lawyer in the Field",
                                         style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 24,
-                                            fontFamily: "CabinetBold"),
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontFamily: "CabinetBold"),
                                       ),
                                     ),
+                                    const SizedBox(width: 10,),
                                     Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {
-                                          Get.toNamed(
-                                              notificationScreen,
-                                              arguments: {
-                                                "type": controller.lawFirm.type
-                                              }
-                                          );
-                                        },
-                                        child: Icon(
-                                          Iconsax.notification,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
+                                      flex: 2,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: InkWell(
+                                              onTap: () {
+                                                Get.toNamed(firmInterviewScreen);
+                                              },
+                                              child: Badge(
+                                                isLabelVisible: (controller.sent.isNotEmpty || controller.applicants.isNotEmpty)?
+                                                true
+                                                :
+                                                false,
+                                                label: Text(
+                                                  ((controller.sent.length + controller.applicants.length) > 9)?
+                                                  "9+"
+                                                  :
+                                                  "${controller.sent.length + controller.applicants.length}",
+                                                  style: const TextStyle(
+                                                    color: Colors.white
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Iconsax.maximize_2,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10,),
+                                          Expanded(
+                                            flex: 1,
+                                            child: InkWell(
+                                              onTap: () {
+                                                Get.toNamed(
+                                                  notificationScreen,
+                                                  arguments: {
+                                                    "type": _lawFirmStateController.lawFirm.type
+                                                  }
+                                                );
+                                              },
+                                              child: Badge(
+                                                isLabelVisible: (controller.ureadList.isNotEmpty)?
+                                                true
+                                                :
+                                                false,
+                                                label: Text(
+                                                  (controller.ureadList.length > 9)?
+                                                  "9+"
+                                                  :
+                                                  controller.ureadList.length.toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Iconsax.notification,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                        ],
                                       ),
                                     )
                                   ],
                                 ),
                                 TextFormField(
-                                                                      onTap: () {
+                                  onTap: () {
                                       FocusScope.of(context).requestFocus(FocusNode());
                                       Get.toNamed(searchScreen);
                                     },
@@ -113,7 +168,9 @@ class LFHomeScreen extends StatelessWidget {
                                       labelText: "Search for lawyer",
                                       labelStyle: const TextStyle(
                                           color: Color(0xffAFAFAF),
-                                          fontSize: 16)),
+                                          fontSize: 16
+                                        )
+                                      ),
                                 )
                               ],
                             ),
@@ -134,12 +191,31 @@ class LFHomeScreen extends StatelessWidget {
                         const SizedBox(
                           height: 20,
                         ),
-                        const Text(
-                          "Practice Area",
-                          style: TextStyle(
-                              color: Color(0xff03132B),
-                              fontSize: 16,
-                              fontFamily: "CabinetBold"),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Top Practice Areas",
+                              style: TextStyle(
+                                color: Color(0xff03132B),
+                                fontSize: 16,
+                                fontFamily: "CabinetBold"
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Get.toNamed(companyPostJobOfferScreen);
+                              },
+                              child: const Text(
+                                "Post job offers",
+                                style: TextStyle(
+                                  color: Color(0xffD3A518),
+                                  fontSize: 14,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            )
+                          ],
                         ),
                         const SizedBox(
                           height: 10,

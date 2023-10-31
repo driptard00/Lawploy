@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:lawploy_app/controllers/interview_state_controller.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
+
+import '../../../../../../controllers/appStateController.dart';
 
 class InterviewView extends StatelessWidget {
   InterviewView({super.key});
 
   final InterviewStateController _interviewStateController = Get.find<InterviewStateController>();
+  final AppStateController _appStateController = Get.find<AppStateController>();
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,7 @@ class InterviewView extends StatelessWidget {
       _interviewStateController.getAllRecievedInterviews();
     });
 
-    return GetBuilder<InterviewStateController>(
+    return GetBuilder<AppStateController>(
       builder: (controller) {
         return Scaffold(
           body: (controller.isLoading)?
@@ -28,7 +30,7 @@ class InterviewView extends StatelessWidget {
             ),
           )
               :
-          (controller.allRecievedInterviews.isEmpty)?
+          (controller.recievedList.isEmpty)?
           Center(
             child: Column(
               children: [
@@ -58,14 +60,14 @@ class InterviewView extends StatelessWidget {
                 ListView.separated(
                   primary: false,
                   shrinkWrap: true,
-                  itemCount: controller.allRecievedInterviews.length,
+                  itemCount: controller.recievedList.length,
                   separatorBuilder: (context, index) {
                     return const SizedBox(
                       height: 10,
                     );
                   },
                   itemBuilder: (context, index) {
-                    String timestamp = controller.allRecievedInterviews[index]["createdAt"];
+                    String timestamp = controller.recievedList[index]["createdAt"];
                     var dateTime = DateTime.parse(timestamp).toLocal();
                     var now = DateTime.now();
                     bool isToday = dateTime.year == now.year &&
@@ -79,8 +81,24 @@ class InterviewView extends StatelessWidget {
                     } else {
                       formattedDate = DateFormat('d MMM, y').format(dateTime);
                     }
-
                     final formattedTime = DateFormat('h:mma').format(dateTime).toLowerCase();
+
+                    String timestamp1 = controller.recievedList[index]["invitation"] ?? DateTime.now().toString();
+                    var dateTime1 = DateTime.parse(timestamp1).toLocal();
+                    var now1= DateTime.now();
+                    bool isToday1 = dateTime1.year == now1.year &&
+                    dateTime1.month == now1.month &&
+                    dateTime1.day == now1.day;
+
+                    // Format date and time
+                    String formattedDate1;
+                    if (isToday1) {
+                      formattedDate1 = 'Today';
+                    } else {
+                      formattedDate1 = DateFormat('d MMM, y').format(dateTime1);
+                    }
+                    final formattedTime1 = DateFormat('h:mma').format(dateTime1).toLowerCase();
+
                     return Container(
                       padding: EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
@@ -93,37 +111,17 @@ class InterviewView extends StatelessWidget {
                             leading: CircleAvatar(
                               radius: 20,
                               backgroundImage: (
-                                  controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null ?
-                                  controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"] == null
-                                  :
-                                  controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null ?
-                                  controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"] == null
-                                  :
-                                  controller.allRecievedInterviews[index]["_creator"]["firmID"] != null ?
-                                  controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"] == null
-                                  :
-                                  controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"] == null
+                                controller.recievedList[index]['image'] == null
                               )?
                               const AssetImage("images/profileAvatar.png") as ImageProvider
                                   :
                               NetworkImage(
-                                  (controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"]
-                                  :
-                                  (controller.allRecievedInterviews[index]["_creator"]["firmID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"]
-                                  :
-                                    (controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"]
-                                  :
-                                    (controller.allRecievedInterviews[index]["_creator"]["privateID"] != null)?
-                                  controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"]
-                                        :
-                                        null
+                                controller.recievedList[index]['image']
                               ),
                             ),
+                          
                           title: Text(
-                            controller.allRecievedInterviews[index]["name"],
+                            controller.recievedList[index]["name"],
                             style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xff0E0E0E),
@@ -175,40 +173,21 @@ class InterviewView extends StatelessWidget {
                               Get.toNamed(
                                   interviewJobDetailScreen,
                                 arguments: {
+                                  "date": formattedDate1,
+                                  "time": formattedTime1,
                                     "image": (
-                                        controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null ?
-                                        controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"] == null
-                                            :
-                                        controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null ?
-                                        controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"] == null
-                                            :
-                                        controller.allRecievedInterviews[index]["_creator"]["firmID"] != null ?
-                                        controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"] == null
-                                            :
-                                        controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"] == null
+                                      controller.recievedList[index]['image'] == null
                                     )?
                                     null
                                     :
-                                    (controller.allRecievedInterviews[index]["_creator"]["corporationID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["corporationID"]["profile_image"]
-                                        :
-                                    (controller.allRecievedInterviews[index]["_creator"]["firmID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["firmID"]["profile_image"]
-                                        :
-                                    (controller.allRecievedInterviews[index]["_creator"]["lawyerID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["lawyerID"]["profile_image"]
-                                        :
-                                    (controller.allRecievedInterviews[index]["_creator"]["privateID"] != null)?
-                                    controller.allRecievedInterviews[index]["_creator"]["privateID"]["profile_image"]
-                                    :
-                                   null,
-                                  "name": controller.allRecievedInterviews[index]["name"],
-                                  "id": controller.allRecievedInterviews[index]["_id"],
-                                  "jobTitle": controller.allRecievedInterviews[index]["job_title"],
-                                  "description": controller.allRecievedInterviews[index]["description"],
-                                  "responsibilities": controller.allRecievedInterviews[index]["responsibilities"],
-                                  "website": controller.allRecievedInterviews[index]["website"],
-                                  "state": controller.allRecievedInterviews[index]["state"],
+                                    controller.recievedList[index]['image'],
+                                  "name": controller.recievedList[index]["name"],
+                                  "id": controller.recievedList[index]["_id"],
+                                  "jobTitle": controller.recievedList[index]["job_title"],
+                                  "description": controller.recievedList[index]["description"],
+                                  "responsibilities": controller.recievedList[index]["responsibilities"],
+                                  "website": controller.recievedList[index]["website"],
+                                  "state": controller.recievedList[index]["state"],
                                 }
                               );
                             },

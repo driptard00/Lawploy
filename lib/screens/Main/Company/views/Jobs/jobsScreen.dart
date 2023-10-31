@@ -5,19 +5,21 @@ import 'package:lawploy_app/Widget/PopUps/deletePopups.dart';
 import 'package:lawploy_app/controllers/companyStateController.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 
+import '../../../../../controllers/jobStateController.dart';
+
 class CompanyJobScreen extends StatelessWidget {
   CompanyJobScreen({super.key});
 
-  final CompanyStateController _companyStateController = Get.put(CompanyStateController());
+  final JobStateController _jobStateController = Get.put(JobStateController());
 
   @override
   Widget build(BuildContext context) {
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      _companyStateController.getMyJobs();
+      _jobStateController.getMyJobs();
     },);
 
-    return GetBuilder<CompanyStateController>(
+    return GetBuilder<JobStateController>(
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
@@ -41,7 +43,7 @@ class CompanyJobScreen extends StatelessWidget {
             ),
           )
           :
-          (controller.myJobsList.isEmpty)?
+          (controller.myJobList.isEmpty)?
           Container(
             height: Get.height,
             width: Get.width,
@@ -87,23 +89,23 @@ class CompanyJobScreen extends StatelessWidget {
                       child: ListView.builder(
                         primary: false,
                         shrinkWrap: true,
-                        itemCount: controller.myJobsList.length,
+                        itemCount: controller.myJobList.length,
                         itemBuilder: (context, index) {
                           return ListTile(
                             onTap: (){
                               Get.toNamed(
                                 companyMyJobScreen,
                                 arguments: {
-                                  "jobID": controller.myJobsList[index]["_id"]
+                                  "jobID": controller.myJobList[index]["_id"]
                                 }
                               );
                             },
                             leading: CircleAvatar(
                               radius: 20,
-                              backgroundImage: NetworkImage(controller.myJobsList[index]["image"]),
+                              backgroundImage: NetworkImage(controller.myJobList[index]["image"]),
                             ),
                             title: Text(
-                              controller.myJobsList[index]["job_title"],
+                              controller.myJobList[index]["job_title"],
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Color(0xff0E0E0E),
@@ -111,7 +113,7 @@ class CompanyJobScreen extends StatelessWidget {
                               ),
                             ),
                             subtitle: Text(
-                              controller.myJobsList[index]["position_type"],
+                              controller.myJobList[index]["position_type"],
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Color(0xff5E5E5E),
@@ -130,12 +132,12 @@ class CompanyJobScreen extends StatelessWidget {
                                   Get.back();
                                   }, 
                                   (){
-                                  // controller.myJobsList.remove(controller.myJobsList[index]);
-                                  controller.deleteMyJob(controller.myJobsList[index]["_id"]);
+                                  // controller.myJobList.remove(controller.myJobList[index]);
+                                  controller.deleteMyJob(controller.myJobList[index]["_id"]);
                                   }
                                 );
                               },
-                              child: (controller.myJobsList[index]["publish"] == false)?
+                              child: (controller.myJobList[index]["publish"] == false)?
                               const Text(
                                 "Job Closed",
                                 style: TextStyle(

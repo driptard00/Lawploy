@@ -1,17 +1,23 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudinary/cloudinary.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lawploy_app/models/lawyerModel.dart';
+import 'package:lawploy_app/services/AUTH/auth_api_services.dart';
 import 'package:lawploy_app/services/BRIEFS/briefs_api_services.dart';
 import 'package:lawploy_app/services/JOBS/jobs_api_services.dart';
 import 'package:lawploy_app/services/LAWYER/lawyer_api_services.dart';
+import 'package:lawploy_app/services/NOTIFICATION/notification_api_service.dart';
+import 'package:lawploy_app/services/PAYMENT/payment_api_service.dart';
+import 'package:lawploy_app/services/flutter_wave/flutter_wave_service.dart';
 import 'package:path/path.dart' as path;
 
 import '../Widget/PopUps/otpPopUp.dart';
@@ -33,7 +39,7 @@ class LawyerStateController extends GetxController {
   dynamic _yearOfCall = 0;
   String _country = "";
   String _state = "";
-  String _lga = "";
+  String _lga = "nil";
   String _email = "";
   String _password = "";
   bool _isLoading = false;
@@ -41,12 +47,74 @@ class LawyerStateController extends GetxController {
   String _confirmPassword = "";
   String _coverLetterText = "";
   final List<String> _practiceAreas = [
-    "Alternative Dispute Resolution (ARD)",
-    "Corporate",
-    "Finance",
-    "Litigation",
-    "Oil and Gas",
-  ];
+  "Administrative law",
+  "Admiralty law or maritime law",
+  "Adoption law",
+  "Alternative Dispute Resolution (ARD)",
+  "Animal law",
+  "Antitrust law (or competition law)",
+  "Art law (or art and culture law)",
+  "Aviation law",
+  "Banking law",
+  "Bankruptcy law (creditor debtor rights law or insolvency and reorganization law)",
+  "Business law (or commercial law); commercial litigation",
+  "Business organizations law (or companies law)",
+  "Civil law or common law",
+  "Class action litigation/Mass tort litigation",
+  "Communications law",
+  "Computer law",
+  "Competition law",
+  "Constitutional law",
+  "Construction law",
+  "Consumer law",
+  "Contract law",
+  "Copyright law",
+  "Corporate",
+  "Criminal law",
+  "Custom (law)",
+  "Cyber law",
+  "Defamation law",
+  "Drug control law",
+  "Education law",
+  "Employment law",
+  "Energy law",
+  "Entertainment law",
+  "Environmental law",
+  "Family law",
+  "Financial services regulation law",
+  "Firearm law",
+  "Food law",
+  "Gaming law",
+  "Health and safety law",
+  "Housing law",
+  "Immigration law",
+  "Insurance law",
+  "Intellectual property law",
+  "International law",
+  "International human rights law",
+  "Finance",
+  "Cyber law",
+  "Labour law",
+  "Landlord–tenant law",
+  "Litigation",
+  "Media law",
+  "Medical law",
+  "Military law",
+  "Mining law",
+  "Mortgage law",
+  "Nationality law",
+  "Oil and Gas"
+  "Patent law",
+  "Property law",
+  "Public health law",
+  "Securities law / Capital markets law",
+  "Space law",
+  "Sports law",
+  "Tax law",
+  "Trademark law",
+  "Transport law / Transportation law",
+  "Water law"
+];
   final List<String> _availabilityOptions = [
     "Yes",
     "No"
@@ -87,8 +155,14 @@ class LawyerStateController extends GetxController {
   List<dynamic> _financeLawyersList = [];
   List<dynamic> _litigationLawyersList = [];
   List<dynamic> _oagLawyersList = [];
+  List<dynamic> _countries = [];
+  List<dynamic> _states = [];
+  List<dynamic> _notificationList = [];
   JobFeed _jobFeed = JobFeed();
   String _lawyerId = "";
+  String _lawyerAuth = "";
+  bool _isPayLoading = false;
+  String _accountNo = "";
 
   // GETTERS
   String get firstname => _firstname;
@@ -132,6 +206,9 @@ class LawyerStateController extends GetxController {
   List<dynamic> get financeLawyersList => _financeLawyersList;
   List<dynamic> get litigationLawyersList => _litigationLawyersList;
   List<dynamic> get oagLawyersList => _oagLawyersList;
+  List<dynamic> get countries => _countries;
+  List<dynamic> get states => _states;
+  List<dynamic> get notificationList => _notificationList;
   JobFeed get jobFeed => _jobFeed;
   OtherLawyer get otherLawyer => _otherLawyer;
   String get lawyerId => _lawyerId;
@@ -139,6 +216,8 @@ class LawyerStateController extends GetxController {
   bool get hidePassword => _hidePassword;
   String get password => _password;
   String get coverLetterText => _coverLetterText;
+  bool get isPayLoading => _isPayLoading;
+  String get accountNo => _accountNo;
 
   // SETTERS
   updateFirstname(value) {
@@ -196,6 +275,10 @@ class LawyerStateController extends GetxController {
   }
   updateLGA(value) {
     _lga = value;
+    update();
+  }
+  updateAccountNo(value) {
+    _accountNo = value;
     update();
   }
   updateEmail(value) {
@@ -274,6 +357,51 @@ class LawyerStateController extends GetxController {
     _coverLetterText = value;
     update();
   }
+  updateCountries(value) {
+    _countries = value;
+    update();
+  }
+  updateStates(value) {
+    _states = value;
+    update();
+  }
+  updateIsPayLoading(value){
+    _isPayLoading = value;
+    update();
+  }
+  updateNotificationList(value){
+    _notificationList = value;
+    update();
+  }
+
+  // READ COUNTRY AND STATE DATA 
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('lib/countries.json');
+    final data = await json.decode(response);
+    updateCountries(data);
+  }
+
+    Future<void> uploadFile(File file, String fileName) async {
+    try {
+      final FirebaseStorage storage = FirebaseStorage.instance;
+      final Reference storageRef = storage.ref().child('lawploy/$fileName');
+      final UploadTask uploadTask = storageRef.putFile(file);
+
+      // Wait for the upload task to complete
+      await uploadTask.whenComplete(() {
+        print('File uploaded successfully');
+      });
+
+      // Get the download URL of the uploaded file
+      String downloadURL = await storageRef.getDownloadURL();
+
+      updateFileUrl(downloadURL);
+      
+      print('Download URL: $downloadURL');
+    } catch (e) {
+      print('Error uploading file: $e');
+    }
+  }
 
   // GET FILE
   Future<void> getFile() async {
@@ -285,18 +413,19 @@ class LawyerStateController extends GetxController {
         print(file);
         updateFileName(file.path.split("/").last);
 
-        final response = await cloudinary.upload(
-          file: file.path,
-          fileBytes: file.readAsBytesSync(),
-          resourceType: CloudinaryResourceType.image,
-          progressCallback: (count, total) {
-          print(
-          'Uploading image from file with progress: $count/$total');
-          });
-          if(response.isSuccessful) {
-            print('Get your image from with ${response.secureUrl}');  
-            updateFileUrl(response.secureUrl);
-          }  
+        // final response = await cloudinary.upload(
+        //   file: file.path,
+        //   fileBytes: file.readAsBytesSync(),
+        //   resourceType: CloudinaryResourceType.image,
+        //   progressCallback: (count, total) {
+        //   print(
+        //   'Uploading image from file with progress: $count/$total');
+        //   });
+        //   if(response.isSuccessful) {
+        //     print('Get your image from with ${response.secureUrl}');  
+        //     updateFileUrl(response.secureUrl);
+        //   }  
+        uploadFile(file, _fileNameController.text);
 
       } else {
         // User canceled the picker
@@ -455,7 +584,6 @@ class LawyerStateController extends GetxController {
       _lgaController.text = responseData["data"]["LGA"];
       _codeController.text = responseData["data"]["phone_number_country_code"];
 
-      Get.toNamed(lawyerHolderScreen);
       
     } else {
       updateIsLoading(false);
@@ -509,6 +637,7 @@ class LawyerStateController extends GetxController {
           textColor: Colors.white,
           fontSize: 16.0
         );
+        getLawyerDetails();
     } else {
       updateIsLoading(false);
       Fluttertoast.showToast(
@@ -748,6 +877,7 @@ class LawyerStateController extends GetxController {
         "Close", 
         (){
           Get.back();
+          Get.back();
         }
       );
 
@@ -978,19 +1108,122 @@ class LawyerStateController extends GetxController {
 
   // LOGOUT AUTH
   Future<void> logoutAuth() async{
-    await LocalStorage().deleteUserStorage();
+    updateIsLoading(true);
 
-    Fluttertoast.showToast(
-      msg: "Logout Successful!!!",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 16.0
-    );
+    var response = await ApiServices.logoutUserService();
+    var responseData = response!.data;
+    print(responseData);
 
-    Get.offAllNamed(loginScreen);
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+    updateIsLoading(false);
+
+      await LocalStorage().deleteUserStorage();
+
+      Fluttertoast.showToast(
+        msg: "Logout Successful!!!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+
+      Get.offAllNamed(loginScreen);
+      
+    } else {
+    updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: "Logout Failed",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
   }
+
+  // LAWYER ONBOARDING SERVICE
+  Future<void> paymentInit(BuildContext context, String name, phone, email, dynamic amount, auth, auth2) async{
+    updateIsPayLoading(true);
+
+    Map<String, dynamic> details = {
+      "senderId": auth,
+      "recevierId": auth2,
+      "reason": "For payment",
+      "type": "breif",
+      "currency": "NGN",
+      "amount": amount
+    };
+
+    print(details);
+
+    var response = await PAYMENTAPISERVICE.initPaymentService(details);
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsPayLoading(false);
+
+      FlutterWaveService().handlePaymentInitialization(
+        context,
+        name,
+        phone,
+        email,
+        amount,
+        responseData["data"]["_id"]
+      );
+
+    } else {
+      updateIsPayLoading(false);
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+
+    update();
+  }
+
+  // GET ALL NOTIFICATIONS
+  Future<void> getAllNotifications() async{
+    updateIsLoading(true);
+
+    var response = await NotificationApiService.getAllNotificationService();
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+      
+      updateNotificationList(
+        responseData["data"].where((unseen) => unseen["seen"] == false).toList()
+      );
+
+    } else {
+      updateIsLoading(false);
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+    }
+  }
+
+
 
 }

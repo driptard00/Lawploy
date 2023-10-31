@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudinary/cloudinary.dart';
@@ -9,8 +10,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:lawploy_app/models/lawFirmModel.dart';
 import 'package:lawploy_app/models/lawyerModel.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
+import 'package:lawploy_app/services/AUTH/auth_api_services.dart';
 import 'package:lawploy_app/services/FIRM/lawFirmApiServices.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:lawploy_app/services/JOBS/jobs_api_services.dart';
 import 'package:lawploy_app/services/LAWYER/lawyer_api_services.dart';
 
 import '../Widget/PopUps/otpPopUp.dart';
@@ -21,12 +24,13 @@ class LawFirmStateController extends GetxController {
   // INSTANT VARIABLES
   String _country = "";
   String _state = "";
-  String _lga = "";
+  String _lga = "nil";
   String _companyName = "";
   String _companyPhoneNumber = "";
   String _companyWebsite = "";
   String _companyAddress = "";
   bool _isLoading = false;
+  bool _isPayLoading = false;
   LawFirm _lawFirm = LawFirm();
   bool _hidePassword = true;
   String _confirmPassword = "";
@@ -49,6 +53,11 @@ class LawFirmStateController extends GetxController {
   List<dynamic> _litigationLawyersList = [];
   List<dynamic> _oagLawyersList = [];
   OtherLawyer _otherLawyer = OtherLawyer();
+  List<dynamic> _applicants = [];
+  List<dynamic> _countries = [];
+  List<dynamic> _states = [];
+  List<dynamic> _myJobList = [];
+
 
   // GETTERS
   String get country => _country;
@@ -59,6 +68,7 @@ class LawFirmStateController extends GetxController {
   String get companyWebsite => _companyWebsite;
   String get companyAddress => _companyAddress;
   bool get isLoading => _isLoading;
+  bool get isPayLoading => _isPayLoading;
   LawFirm get lawFirm => _lawFirm;
   TextEditingController get companyNameController => _companyNameController;
   TextEditingController get companyPhoneNumberController => _companyPhoneNumberController;
@@ -81,10 +91,15 @@ class LawFirmStateController extends GetxController {
   List<dynamic> get financeLawyersList => _financeLawyersList;
   List<dynamic> get litigationLawyersList => _litigationLawyersList;
   List<dynamic> get oagLawyersList => _oagLawyersList;
+  List<dynamic> get applicants => _applicants;
   OtherLawyer get otherLawyer => _otherLawyer;
   String get confirmPassword => _confirmPassword;
   bool get hidePassword => _hidePassword;
   String get password => _password;
+  List<dynamic> get countries => _countries;
+  List<dynamic> get states => _states;
+  List<dynamic> get myJobList => _myJobList;
+
 
   // SETTERS
   updateCountry(value) {
@@ -147,6 +162,12 @@ class LawFirmStateController extends GetxController {
     _litigationLawyersList = value;
     update();
   }
+  updateApplicants(value) {
+    _applicants = value;
+    _applicants.sort((a, b) => DateTime.parse(b["createdAt"]).compareTo(DateTime.parse(a["createdAt"])));
+    print("APPLICANTSS::::$applicants");
+    update();
+  }
   updateOAG(value) {
     _oagLawyersList = value;
     update();
@@ -166,6 +187,26 @@ class LawFirmStateController extends GetxController {
   updatePassword(value) {
     _password = value;
     update();
+  }
+  updateCountries(value) {
+    _countries = value;
+    update();
+  }
+  updateStates(value) {
+    _states = value;
+    update();
+  }
+  updateMyJobList(value) {
+    _myJobList = value;
+    update();
+  }
+
+  
+  // READ COUNTRY AND STATE DATA 
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('lib/countries.json');
+    final data = await json.decode(response);
+    updateCountries(data);
   }
 
   // GET IMAGE
@@ -280,7 +321,7 @@ class LawFirmStateController extends GetxController {
       "website": _companyWebsiteController.text
     };
 
-    var response = await LawFirmApiServices.lawFirmOnboardingService(details);
+    var response = await LawFirmApiServices.updateFirmProfileService(details);
     var responseData = response!.data;
 
     bool isSuccess = responseData["success"];
@@ -296,8 +337,7 @@ class LawFirmStateController extends GetxController {
         fontSize: 16.0
       );
 
-      Get.offAllNamed(loginScreen);
-
+      getLawFirmProfile();
 
     } else {
       updateIsLoading(false);
@@ -335,7 +375,6 @@ class LawFirmStateController extends GetxController {
       _lgaController.text = responseData["data"][0]["LGA"];
       _codeController.text = responseData["data"][0]["phone_number_country_code"];
 
-      Get.toNamed(lawFirmHolderScreen);
 
     } else {
       updateIsLoading(false);
@@ -610,19 +649,145 @@ class LawFirmStateController extends GetxController {
 
   // LOGOUT AUTH
   Future<void> logoutAuth() async{
-    await LocalStorage().deleteUserStorage();
+    updateIsLoading(true);
 
-    Fluttertoast.showToast(
-      msg: "Logout Successful!!!",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 16.0
-    );
+    var response = await ApiServices.logoutUserService();
+    var responseData = response!.data;
+    print(responseData);
 
-    Get.offAllNamed(loginScreen);
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+    updateIsLoading(false);
+
+      await LocalStorage().deleteUserStorage();
+
+      Fluttertoast.showToast(
+        msg: "Logout Successful!!!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+
+      Get.offAllNamed(loginScreen);
+      
+    } else {
+    updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: "Logout Failed",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+  }
+
+    //  GET my jobs
+  Future<void> getAllJobData() async{
+    updateIsLoading(true);
+
+    var response = await JobsApiServices.getAllJobDataService();
+    var responseData = response!.data;
+    print(responseData);
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      updateApplicants(responseData["applicants"]);
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+          msg: responseData["error"],
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+    update();
+  }
+
+  //  GET my jobs
+  Future<void> getMyJobs() async{
+    updateIsLoading(true);
+
+    var response = await JobsApiServices.getMyJobsService();
+    var responseData = response!.data;
+    print(responseData);
+    
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      updateMyJobList(responseData["data"]);
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+    update();
+  }
+
+ 
+  //  deleteJob
+  Future<void> deleteMyJob(String id) async{
+    updateIsLoading(true);
+
+    var response = await JobsApiServices.deleteJobService(id);
+    var responseData = response!.data;
+    print(responseData);
+    
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsLoading(false);
+
+      Get.back();
+      getMyJobs();
+      
+      Fluttertoast.showToast(
+        msg: "Job Deleted Successfully!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+
+    } else {
+      updateIsLoading(false);
+
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+    update();
   }
 
 }

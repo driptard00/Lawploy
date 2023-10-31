@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:lawploy_app/routes/api_routes.dart';
@@ -29,7 +31,7 @@ class AuthStateController extends GetxController {
   String _yearOfCall = "";
   String _country = "";
   String _state = "";
-  String _lga = "";
+  String _lga = "nil";
   String _companyName = "";
   String _companyPhoneNumber = "";
   String _companyWebsite = "";
@@ -39,6 +41,7 @@ class AuthStateController extends GetxController {
   String _positionType  = "";
   bool _hidePassword = true;
   bool _isLoading = false;
+  String _accountNo = "";
   final List<String> _typeOptions = [
     "Lawyer",
     "Law Firm",
@@ -85,8 +88,10 @@ class AuthStateController extends GetxController {
   String _selectedAccount = "";
   int _remainingSeconds = 120; // Initial countdown time in seconds
   late Timer _timer;
-
-
+  List<dynamic> _countries = [];
+  List<dynamic> _states = [];
+  bool _timerIsDone = false;
+  bool _isSendLoading = false;
 
   // GETTERS
   String get email => _email;
@@ -127,6 +132,11 @@ class AuthStateController extends GetxController {
   String get selectedAccount => _selectedAccount;
   int get remainingSeconds => _remainingSeconds;
   Timer get timer => _timer;
+  List<dynamic> get countries => _countries;
+  List<dynamic> get states => _states;
+  bool get timerIsDone => _timerIsDone;
+  bool get isSendLoading => _isSendLoading;
+  String get accountNo => _accountNo;
 
   // SETTERS
   updateEmail(value) {
@@ -175,6 +185,10 @@ class AuthStateController extends GetxController {
   }
   updatePhoneNumber(value) {
     _phonenumber = value;
+    update();
+  }
+  updateAccountNo(value) {
+    _accountNo = value;
     update();
   }
   updateBriefDescription(value) {
@@ -248,6 +262,14 @@ class AuthStateController extends GetxController {
     _selectedAccount = value;
     update();
   }
+  updateTimerIsDone(value){
+    _timerIsDone = value;
+    update();
+  }
+  updateIsSendLoading(value){
+    _isSendLoading = value;
+    update();
+  }
   startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), updateTimer);
     update();
@@ -262,10 +284,24 @@ class AuthStateController extends GetxController {
     update();
   }
   onTimerFinished() {
-    resendSignInOtp();
+    updateTimerIsDone(true);
+    update();
+  }
+  updateCountries(value) {
+    _countries = value;
+    update();
+  }
+  updateStates(value) {
+    _states = value;
     update();
   }
 
+  // READ COUNTRY AND STATE DATA 
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('lib/countries.json');
+    final data = await json.decode(response);
+    updateCountries(data);
+  }
 
   // REGISTER USER SERVICE
   Future<void> registerUser(BuildContext context) async{
@@ -348,22 +384,30 @@ class AuthStateController extends GetxController {
 
       await LocalStorage().storeUserToken(responseData["token"]);
       await LocalStorage().storeUserId(responseData["user"]["_id"]);
+      await LocalStorage().storeUserId(responseData["user"]["_type"]);
 
       if(responseData["user"]["account_setup_completed"] == false){
         Get.offAllNamed(typeOfAccountScreen);
       }
+      else if (responseData["user"]["account_verify"] == false){
+        resendSignInOtp2();
+        Get.offAllNamed(otpVerificationScreen);
+      }
       else {
         await LocalStorage().storeUserToken(responseData["token"]);
+        await LocalStorage().storeUserToken2(responseData["token"]);
         await LocalStorage().storeUserId(responseData["user"]["_id"]);
         await LocalStorage().storeUserAUTH(responseData["user"]["_auth"]);
+        await LocalStorage().storeType(responseData["user"]["_type"]);
+
         if(responseData["user"]["_type"] == "lawyer"){
-          Get.offAllNamed(getLawyerDetailsScreen);
+          Get.offAllNamed(lawyerHolderScreen);
         } else if(responseData["user"]["_type"] == "firm"){
-          Get.offAllNamed(getLawFirmDetailScreen);
+          Get.offAllNamed(lawFirmHolderScreen);
         }else if(responseData["user"]["_type"] == "corporation"){
-          Get.offAllNamed(getCompanyDetailsScreen);
+          Get.offAllNamed(companyHolderScreen);
         }else if(responseData["user"]["_type"] == "private"){
-          Get.offAllNamed(getPrivateDetailsScreen);
+          Get.offAllNamed(piHolderScreen);
         }else{
           Fluttertoast.showToast(
             msg: "Select a type!!!",
@@ -394,7 +438,8 @@ class AuthStateController extends GetxController {
 
   // RESEND SIGNIN OTP SERVICE
   Future<void> resendSignInOtp() async{
-    updateIsLoading(true);
+    updateIsSendLoading(true);
+
 
     Map<String, dynamic> resendDetails = {
       "email": _email,
@@ -405,7 +450,52 @@ class AuthStateController extends GetxController {
 
     bool isSuccess = responseData["success"];
     if(isSuccess){
-      updateIsLoading(false);
+      updateIsSendLoading(false);
+      Fluttertoast.showToast(
+        msg: "OTP sent Successfully!!!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+      _remainingSeconds = 120;
+      updateTimerIsDone(false);
+      startTimer();
+
+    } else {
+      updateIsSendLoading(false);
+      Fluttertoast.showToast(
+        msg: responseData["error"],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+
+    update();
+  }
+
+  // RESEND SIGNIN OTP SERVICE
+  Future<void> resendSignInOtp2() async{
+    updateIsSendLoading(true);
+
+    _email = await LocalStorage().fetchEmail();
+
+    Map<String, dynamic> resendDetails = {
+      "email": _email,
+    };
+
+    var response = await ApiServices.resendRegisterOtpService(resendDetails);
+    var responseData = response!.data;
+
+    bool isSuccess = responseData["success"];
+    if(isSuccess){
+      updateIsSendLoading(false);
       Fluttertoast.showToast(
         msg: "OTP sent Successfully!!!",
         toastLength: Toast.LENGTH_LONG,
@@ -417,7 +507,7 @@ class AuthStateController extends GetxController {
       );
 
     } else {
-      updateIsLoading(false);
+      updateIsSendLoading(false);
       Fluttertoast.showToast(
         msg: responseData["error"],
         toastLength: Toast.LENGTH_LONG,
@@ -428,6 +518,8 @@ class AuthStateController extends GetxController {
         fontSize: 16.0
       );
     }
+
+    update();
   }
 
   // FORGOT PASSWORD SERVICE

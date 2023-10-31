@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:lawploy_app/routes/app_route_names.dart';
 
 import '../../../../../../controllers/appStateController.dart';
@@ -70,12 +71,27 @@ class OAGHoldBriefView extends StatelessWidget {
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            CircleAvatar(
-                                              radius: 30,
-                                              backgroundImage: (controller.oagLawyersList[index]["profile_image"] == null)?
-                                              const AssetImage("images/profileAvatar.png") as ImageProvider
-                                              :
-                                              NetworkImage(controller.oagLawyersList[index]["profile_image"]),
+                                            Stack(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: (controller.lawyersList[index]["profile_image"] == null)?
+                                                  const AssetImage("images/profileAvatar.png") as ImageProvider
+                                                  :
+                                                  NetworkImage(controller.lawyersList[index]["profile_image"]),
+                                                ),
+                                                controller.lawyersList[index]["verify"]?
+                                                const Positioned(
+                                                  right: 0,
+                                                  bottom: 0,
+                                                  child: Icon(
+                                                    Iconsax.verify5,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                                :
+                                                SizedBox()
+                                              ],
                                             ),
                                             const SizedBox(height: 10,),
                                             Text(

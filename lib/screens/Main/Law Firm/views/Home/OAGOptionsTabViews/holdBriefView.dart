@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 
 import '../../../../../../controllers/appStateController.dart';
 import '../../../../../../controllers/lawfirmStateController.dart';
@@ -78,12 +79,27 @@ class OAGHoldBriefView extends StatelessWidget {
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            CircleAvatar(
-                                              radius: 30,
-                                              backgroundImage: (controller.oagLawyersList[index]["profile_image"] == null)?
-                                              const AssetImage("images/profileAvatar.png") as ImageProvider
-                                              :
-                                              NetworkImage(controller.oagLawyersList[index]["profile_image"]),
+                                            Stack(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: (controller.oagLawyersList[index]["profile_image"] == null)?
+                                                  const AssetImage("images/profileAvatar.png") as ImageProvider
+                                                  :
+                                                  NetworkImage(controller.oagLawyersList[index]["profile_image"]),
+                                                ),
+                                                controller.oagLawyersList[index]["verify"]?
+                                                const Positioned(
+                                                  right: 0,
+                                                  bottom: 0,
+                                                  child: Icon(
+                                                    Iconsax.verify5,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                                :
+                                                SizedBox()
+                                              ],
                                             ),
                                             const SizedBox(height: 10,),
                                             Text(
@@ -96,7 +112,7 @@ class OAGHoldBriefView extends StatelessWidget {
                                             ),
                                             const SizedBox(height: 5,),
                                             Text(
-                                              "${controller.lawyersList[index]["state"]}, ${controller.lawyersList[index]["country"]}",
+                                              "${controller.oagLawyersList[index]["state"]}, ${controller.oagLawyersList[index]["country"]}",
                                               maxLines: 1,
                                               textAlign: TextAlign.center,
                                               overflow: TextOverflow.ellipsis,

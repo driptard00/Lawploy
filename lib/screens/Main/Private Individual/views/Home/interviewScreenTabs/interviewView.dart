@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
+import 'package:lawploy_app/Widget/BottomSheets/interviewBottomSheet.dart';
+import 'package:lawploy_app/controllers/chat_controller.dart';
 import 'package:lawploy_app/controllers/interview_state_controller.dart';
+import 'package:lawploy_app/routes/app_route_names.dart';
 
 class InterviewsView extends StatelessWidget {
   InterviewsView({super.key});
 
   final InterviewStateController _interviewStateController = Get.find<InterviewStateController>();
+  final ChatController _chatController = Get.find<ChatController>();
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +26,7 @@ class InterviewsView extends StatelessWidget {
         return Scaffold(
           body: Container(
             child: (controller.isLoading)?
-            Center(
+            const Center(
               child: SpinKitThreeBounce(
                 color: Color(0xff041C40),
               ),
@@ -35,7 +40,7 @@ class InterviewsView extends StatelessWidget {
                   Image.asset(
                     "images/noInterview.png"
                   ),
-                  Text(
+                  const Text(
                     "You've not sent any interviews"
                   )
                 ],
@@ -63,8 +68,49 @@ class InterviewsView extends StatelessWidget {
                       );
                     },
                     itemBuilder: (context, index) {
+                      String timestamp = controller.allSentInterviews[index]["createdAt"];
+                      var dateTime = DateTime.parse(timestamp).toLocal();
+                      var now = DateTime.now();
+                      bool isToday = dateTime.year == now.year &&
+                      dateTime.month == now.month &&
+                      dateTime.day == now.day;
+
+                      // Format date and time
+                      String formattedDate;
+                      if (isToday) {
+                        formattedDate = 'Today';
+                      } else {
+                        formattedDate = DateFormat('d MMM, y').format(dateTime);
+                      }
+
+                      final formattedTime = DateFormat('h:mma').format(dateTime).toLowerCase();
+                      
                       return ListTile(
-                        onTap: (){},
+                        onTap: (){
+                          (controller.allSentInterviews[index]["state"] == "Accepted")?
+                          InterviewBottomSheet.showInterviewBottomSheet(
+                            controller.allSentInterviews[index]["_recevier"]["lawyerID"]["first_name"], 
+                            controller.allSentInterviews[index]["_recevier"]["_id"], 
+                            controller.allSentInterviews[index]["_recevier"]["lawyerID"]["first_name"],
+                            "", 
+                            controller.allSentInterviews[index]["_recevier"]["lawyerID"]["profile_image"]
+                          )
+                          :
+                          (controller.allSentInterviews[index]["state"] == "Rejected")?
+                          Get.toNamed(
+                            inputFeedbackScreen,
+                            arguments: {
+                              "ID": controller.allSentInterviews[index]["_id"]
+                            }
+                          )
+                          :
+                          Get.toNamed(
+                            inputFeedbackScreen,
+                            arguments: {
+                              "ID": controller.allSentInterviews[index]["_id"]
+                            }
+                          );
+                        },
                         leading: CircleAvatar(
                           radius: 20,
                           backgroundImage: (controller.allSentInterviews[index]["_recevier"]["lawyerID"]["profile_image"] == null)?
@@ -80,9 +126,9 @@ class InterviewsView extends StatelessWidget {
                             fontWeight: FontWeight.bold
                           ),
                         ),
-                        subtitle: const Text(
-                          "15th Mar, 2023",
-                          style: TextStyle(
+                        subtitle: Text(
+                          formattedDate,
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xff5E5E5E),
                           ),
@@ -90,14 +136,14 @@ class InterviewsView extends StatelessWidget {
                         trailing: (controller.allSentInterviews[index]["state"] == "Pending")?
                         Container(
                           height: 31,
-                          width: 127,
+                          width: 130,
                           decoration: BoxDecoration(
                             color: const Color(0xff041C40),
                             borderRadius: BorderRadius.circular(50)
                           ),
                           child:const Center(
                             child:  Text(
-                              "Awaiting Approval",
+                              "Awaiting Acceptance",
                               style: TextStyle(
                                 color: Colors.white
                               ),
@@ -105,14 +151,23 @@ class InterviewsView extends StatelessWidget {
                           ),
                         )
                         :
+                        (controller.allSentInterviews[index]["state"] == "Accepted")?
                         const Text(
-                          "Meeting Link",
+                          "Continue",
                           style: TextStyle(
-                            color: Color(0xffD3A518),
-                            fontSize: 14,
-                            decoration: TextDecoration.underline,
+                            color: Colors.green,
+                            decoration: TextDecoration.underline
                           ),
                         )
+                        :
+                        const Text(
+                          "Rejected",
+                          style: TextStyle(
+                            color: Color(0xffFF0000),
+                            decoration: TextDecoration.underline
+                          ),
+                        )
+
                       );
                     },
                   ),

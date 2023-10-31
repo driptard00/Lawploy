@@ -11,7 +11,6 @@ class CompanyInterviewScreen extends StatelessWidget {
 
   final InterviewStateController _interviewStateController = Get.put(InterviewStateController());
 
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(

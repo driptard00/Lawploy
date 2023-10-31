@@ -28,7 +28,7 @@ class LawyerKycVerification {
       "review_process": "Automatic",
       "pages": [
         // { "page": "phone-number", "config": { "verification": true } },
-        { "page": "government-data", "config": { "bvn": true, "nin": false, "dl": false, "mobile": false, "otp": false, "selfie": false } }, 
+        // { "page": "government-data", "config": { "bvn": false, "nin": true, "dl": true, "mobile": false, "otp": false, "selfie": true } }, 
 
         // { "page": "user-data", "config": { "enabled": false } },
         // { "page": "countries", "config": { "enabled": false } },
@@ -36,7 +36,7 @@ class LawyerKycVerification {
         // { "page": "business-id" },
         // { "page": "selfie", "config": { "verification": true }},
         // { "page": "address", "config": { "verification": true }},
-        // { "page": 'id', "config": { "passport": true, "dl": true , "nin": true, "voter":true, "custom": true } },
+        { "page": 'id', "config": { "passport": true, "dl": true , "nin": true, "voter":true, "custom": true } },
       ]
     };
     
@@ -64,7 +64,7 @@ class LawyerKycVerification {
       context,
       onSuccess: (result) async{
         print(result);
-        Get.offAllNamed(getLawFirmDetailScreen);
+        Get.offAllNamed(lawyerHolderScreen);
       },
       onClose: (close){
         Get.back();
